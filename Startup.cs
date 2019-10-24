@@ -132,7 +132,7 @@ namespace EchoApp
   ""description"": ""node.js instance"",
   ""devtoolsFrontendUrl"": ""chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
   ""devtoolsFrontendUrlCompat"": ""chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
-  ""faviconUrl"": ""https://nodejs.org/static/favicon.ico"",
+  ""faviconUrl"": ""https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509"",
   ""id"": ""67b14650-5755-42ae-a255-25f9e8329fe0"",
   ""title"": ""node[fred]"",
   ""type"": ""node"",
@@ -165,9 +165,9 @@ namespace EchoApp
                 await Task.WhenAll(communicationSession.Select( _ => 
                      _.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None)
                 ));
-                
+
                 if(result.MessageType == WebSocketMessageType.Text) {
-                    var logEntry = GetLogEvent(Encoding.ASCII.GetString(buffer));
+                    var logEntry = GetLogEvent(Encoding.ASCII.GetString(buffer.Take(result.Count).ToArray()));
                     await Task.WhenAll(this.chromeConnection.Select(_ => _.SendEvent(logEntry)));
                 }
 
@@ -176,16 +176,16 @@ namespace EchoApp
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
-        private Task Chrome(HttpContext context, WebSocket webSocket, ILogger<ChromeSession> logger) {
+        private async Task Chrome(HttpContext context, WebSocket webSocket, ILogger<ChromeSession> logger) {
 
-            return Task.Run( async () =>  {
+           
                 var session = new ChromeSession(logger, webSocket);
                 chromeConnection.Add(session);
 
                 await session.Process(CancellationToken.None);
 
                 chromeConnection.Remove(session);
-            });
+           
         }
 #endregion
         private List<ChromeSession> chromeConnection = new List<ChromeSession>();
