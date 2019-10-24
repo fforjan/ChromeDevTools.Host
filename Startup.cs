@@ -157,12 +157,15 @@ namespace EchoApp
 #region Echo
         private async Task Echo(HttpContext context, WebSocket webSocket)
         {
+            this.communicationSession.Add(webSocket);
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             while (!result.CloseStatus.HasValue)
             {
-                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
-
+                await Task.WhenAll(communicationSession.Select( _ => 
+                     _.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None)
+                ));
+                
                 if(result.MessageType == WebSocketMessageType.Text) {
                     var logEntry = GetLogEvent(Encoding.ASCII.GetString(buffer));
                     await Task.WhenAll(this.chromeConnection.Select(_ => _.SendEvent(logEntry)));
@@ -186,6 +189,7 @@ namespace EchoApp
         }
 #endregion
         private List<ChromeSession> chromeConnection = new List<ChromeSession>();
+        private List<WebSocket> communicationSession = new List<WebSocket>();
 
         private EntryAddedEvent GetLogEvent(string logMessage) {
             var logEvent = new EntryAddedEvent {
