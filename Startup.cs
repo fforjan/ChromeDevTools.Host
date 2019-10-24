@@ -45,8 +45,9 @@ namespace EchoApp
             var chromeSessionLogger= app.ApplicationServices.GetService<ILogger<ChromeSession>>();
 
             var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
-            var address = serverAddressesFeature.Addresses.First();
-            var wsAddress = "ws" + address.Substring(address.IndexOf(':'));
+            var address = serverAddressesFeature.Addresses.First().Replace("localhost", "127.0.0.1");
+            var noPrefixAddress =  address.Substring(address.IndexOf('/') +2);
+            var wsAddress = "ws" +address.Substring(address.IndexOf(':'));
 
 #if NoOptions
             #region UseWebSockets
@@ -82,39 +83,71 @@ namespace EchoApp
             #region AcceptWebSocket
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/ws")
+                switch (context.Request.Path)
                 {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        await Echo(context, webSocket);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
-                } else if (context.Request.Path == "/chrome")
-                {
-                    if (context.WebSockets.IsWebSocketRequest)
-                    {
-                        WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        await Chrome(context, webSocket, chromeSessionLogger);
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 400;
-                    }
-                }
-                else if(context.Request.Path == "/json/version") {
-                    await context.Response.WriteAsync(
-                    @"{  
-                        ""Protocol-Version"": ""1.3"",
-                        ""webSocketDebuggerUrl"": """ + wsAddress + @"chrome""
-                    }");
-                }
-                else
-                {
-                    await next();
+                    case "/ws":
+                        {
+                            if (context.WebSockets.IsWebSocketRequest)
+                            {
+                                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                                await Echo(context, webSocket);
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = 400;
+                            }
+
+                            break;
+                        }
+
+                    case "/chrome":
+                        {
+                            if (context.WebSockets.IsWebSocketRequest)
+                            {
+                                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                                await Chrome(context, webSocket, chromeSessionLogger);
+                            }
+                            else
+                            {
+                                context.Response.StatusCode = 400;
+                            }
+
+                            break;
+                        }
+
+                    case "/json/version":
+                        context.Response.ContentType = "application/json; charset=UTF-8";
+                        await context.Response.WriteAsync(
+                        @"{  
+                                ""Browser"": ""node.js/v10.14.2"",
+  ""Protocol-Version"": ""1.1""
+                           }");
+                        break;
+                    case "/json":
+                    case "/json/list":
+                     context.Response.ContentType = "application/json; charset=UTF-8";
+                    
+                        var response = 
+                        @"[ {
+  ""description"": ""node.js instance"",
+  ""devtoolsFrontendUrl"": ""chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
+  ""devtoolsFrontendUrlCompat"": ""chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
+  ""faviconUrl"": ""https://nodejs.org/static/favicon.ico"",
+  ""id"": ""67b14650-5755-42ae-a255-25f9e8329fe0"",
+  ""title"": ""node[fred]"",
+  ""type"": ""node"",
+  ""url"": ""file://"",
+  ""webSocketDebuggerUrl"": """ + wsAddress + @"chrome""
+} ]
+";
+
+                    context.Response.Headers.Add("Content-Length", response.Length.ToString());
+
+                    await context.Response.WriteAsync(response);
+                        break;
+                    default:
+                        await next();
+                        break;
                 }
 
             });
@@ -140,22 +173,16 @@ namespace EchoApp
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
-        private async Task Chrome(HttpContext context, WebSocket webSocket, ILogger<ChromeSession> logger) {
+        private Task Chrome(HttpContext context, WebSocket webSocket, ILogger<ChromeSession> logger) {
 
-            var session = new ChromeSession(logger, webSocket);
-            chromeConnection.Add(session);
+            return Task.Run( async () =>  {
+                var session = new ChromeSession(logger, webSocket);
+                chromeConnection.Add(session);
 
-            var buffer = new byte[1024 * 4];            
-            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            while (!result.CloseStatus.HasValue)
-            {
-                await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                await session.Process(CancellationToken.None);
 
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            }
-
-            chromeConnection.Remove(session);
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                chromeConnection.Remove(session);
+            });
         }
 #endregion
         private List<ChromeSession> chromeConnection = new List<ChromeSession>();
