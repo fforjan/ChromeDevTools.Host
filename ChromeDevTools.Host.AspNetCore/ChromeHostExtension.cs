@@ -17,8 +17,6 @@ namespace ChromeDevTools.Host.AspNetCore
     {
         public static void HostChromeProtocol(this IApplicationBuilder app)
         {
-            var chromeSessionLogger = app.ApplicationServices.GetService<ILogger<ChromeProtocolSession>>();
-
             var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
 
             var serveruri = new Uri(serverAddressesFeature.Addresses.First());
@@ -32,7 +30,7 @@ namespace ChromeDevTools.Host.AspNetCore
                             if (context.WebSockets.IsWebSocketRequest)
                             {
                                 WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                                await Chrome(webSocket, chromeSessionLogger);
+                                await Chrome(webSocket);
                             }
                             else
                             {
@@ -78,9 +76,9 @@ namespace ChromeDevTools.Host.AspNetCore
         }
 
 
-        private static async Task Chrome(WebSocket webSocket, ILogger<ChromeProtocolSession> logger)
+        private static async Task Chrome(WebSocket webSocket)
         {
-            var session = new ChromeProtocolSession(logger, webSocket);
+            var session = new ChromeProtocolSession(webSocket);
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);

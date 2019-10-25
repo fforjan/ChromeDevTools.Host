@@ -1,7 +1,7 @@
 namespace ChromeDevTools.Host
 {
-    using BaristaLabs.ChromeDevTools.Runtime;
-    using BaristaLabs.ChromeDevTools.Runtime.Runtime;
+    using ChromeDevTools.Host.Runtime;
+    using ChromeDevTools.Host.Runtime.Runtime;
     using System;
     using System.Threading.Tasks;
 

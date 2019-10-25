@@ -2,8 +2,8 @@ namespace ChromeDevTools.Host
 {
     using System.Threading.Tasks;
 
-    using BaristaLabs.ChromeDevTools.Runtime;
-    using BaristaLabs.ChromeDevTools.Runtime.Profiler;
+    using ChromeDevTools.Host.Runtime;
+    using ChromeDevTools.Host.Runtime.Profiler;
 
     public class ProfilerHandler
     {

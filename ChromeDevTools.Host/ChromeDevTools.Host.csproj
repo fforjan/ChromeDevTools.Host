@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
   </PropertyGroup>
+
   <ItemGroup>
-        <PackageReference Include="BaristaLabs.ChromeDevTools.Runtime" Version="70.0.3538.77" />
-    </ItemGroup>    
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>    
 </Project>

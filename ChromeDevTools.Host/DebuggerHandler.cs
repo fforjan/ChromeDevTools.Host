@@ -1,7 +1,7 @@
 namespace ChromeDevTools.Host
 {
-    using BaristaLabs.ChromeDevTools.Runtime;
-    using BaristaLabs.ChromeDevTools.Runtime.Debugger;
+    using ChromeDevTools.Host.Runtime;
+    using ChromeDevTools.Host.Runtime.Debugger;
     using System.Threading.Tasks;
 
     public class DebuggerHandler

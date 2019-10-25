@@ -1,14 +1,15 @@
-using System.Net.WebSockets;
+
 
 namespace ChromeDevTools.Host
 {
-    using BaristaLabs.ChromeDevTools.Runtime;
-    using Microsoft.Extensions.Logging;
+    using ChromeDevTools.Host.Runtime;
+
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Concurrent;
     using System.Linq;
+    using System.Net.WebSockets;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -19,8 +20,6 @@ namespace ChromeDevTools.Host
     ///</summary>
     public class ChromeProtocolSession : IDisposable
     {
-        private readonly ILogger<ChromeProtocolSession> m_logger;
-
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
         public RuntimeHandle RuntimeHandle { get; }
@@ -40,10 +39,9 @@ namespace ChromeDevTools.Host
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         /// <param name="logger"></param>
-        public ChromeProtocolSession(ILogger<ChromeProtocolSession> logger, WebSocket webSocket)
+        public ChromeProtocolSession(WebSocket webSocket)
         {
             CommandTimeout = 5000;
-            m_logger = logger;
             m_sessionSocket = webSocket;
 
             RuntimeHandle = new RuntimeHandle(this);
@@ -107,18 +105,12 @@ namespace ChromeDevTools.Host
 
         private void LogTrace(string message, params object[] args)
         {
-            if (m_logger == null)
-                return;
-
-            m_logger.LogTrace(message, args);
+       
         }
 
         private void LogError(string message, params object[] args)
         {
-            if (m_logger == null)
-                return;
-
-            m_logger.LogError(message, args);
+       
         }
 
 

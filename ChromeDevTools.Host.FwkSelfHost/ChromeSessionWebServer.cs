@@ -38,8 +38,7 @@
                                         _ = Task.Run(async () =>
                                         {
                                             var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                            var session = new ChromeProtocolSession(null,
-                                                webSocketContext.WebSocket);
+                                            var session = new ChromeProtocolSession(webSocketContext.WebSocket);
                                             sessions.Add(session);
                                             await session.Process(cancellationToken);
                                             sessions.Remove(session);
