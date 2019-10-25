@@ -6,10 +6,6 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using BaristaLabs.ChromeDevTools.Runtime;
-using BaristaLabs.ChromeDevTools.Runtime.Console;
-using BaristaLabs.ChromeDevTools.Runtime.Log;
-using BaristaLabs.ChromeDevTools.Runtime.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -168,7 +164,7 @@ namespace EchoApp
 
                 if(result.MessageType == WebSocketMessageType.Text) {
                     var logEntry = Encoding.ASCII.GetString(buffer.Take(result.Count).ToArray());
-                    await Task.WhenAll(this.chromeConnection.Select(_ => _.SendEvent(GetLogEvent(logEntry, _.Context))));
+                    await Task.WhenAll(this.chromeConnection.Select(_ => _.RuntimeHandle.EmitLog(logEntry)));
                 }
 
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -191,29 +187,5 @@ namespace EchoApp
 #endregion
         private List<ChromeSession> chromeConnection = new List<ChromeSession>();
         private List<WebSocket> communicationSession = new List<WebSocket>();
-
-        private IEvent GetLogEvent(string logMessage, int contextId) {
-            // var logEvent = new EntryAddedEvent {
-            //     Entry = new LogEntry {
-            //         Source = "javascript",
-            //         Level = "info",
-            //         Text = logMessage,
-            //         Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
-            //     }
-            // };
-
-            var logEvent  = new ConsoleAPICalledEvent {
-               Type = "log",
-               Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-               ExecutionContextId = contextId,
-               Args= new RemoteObject[] {
-                   new RemoteObject{
-                       Type = "string",
-                       Value = logMessage
-                   }
-               }
-            };
-            return logEvent;
-        }
     }   
 }

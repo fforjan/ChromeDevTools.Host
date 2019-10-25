@@ -1,7 +1,6 @@
 namespace EchoApp
 {
     using BaristaLabs.ChromeDevTools.Runtime;
-    using BaristaLabs.ChromeDevTools.Runtime.Runtime;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -20,10 +19,14 @@ namespace EchoApp
     {
         private readonly ILogger<ChromeSession> m_logger;
 
-        private readonly ConcurrentDictionary<string, Func<object,object>> m_commandHandlers = new ConcurrentDictionary<string, Func<object,object>>();
+        private readonly ConcurrentDictionary<string, Func<JToken,Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken,Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
 
         private WebSocket m_sessionSocket;
+
+        public RuntimeHandle RuntimeHandle { get; }
+        public DebuggerHandler DebuggerHandler { get; }
+        public ProfilerHandler ProfilerHandler { get; }
 
         private long m_currentEventId = 0;
 
@@ -46,6 +49,10 @@ namespace EchoApp
             CommandTimeout = 5000;
             m_logger = logger;
             this.m_sessionSocket = webSocket;
+
+            this.RuntimeHandle = new RuntimeHandle(this);
+            this.DebuggerHandler = new DebuggerHandler(this);
+            this.ProfilerHandler = new ProfilerHandler(this);
         }
 
         /// <summary>
@@ -152,34 +159,8 @@ namespace EchoApp
         }
         #endregion
 
-        public int Context {get { return 1; } }
-
-        private Task SendContextCreated() {
-            // {{
-//   "id": 1,
-//   "origin": "",
-//   "name": "node[54441]",
-//   "auxData": {
-//     "isDefault": true
-//   }
-// }}
-            return this.SendEvent(new ExecutionContextCreatedEvent {
-                Context = new ExecutionContextDescription {
-                    Id = this.Context,
-                    Origin = "",
-                    Name = "virtual context",
-                    AuxData = new {
-                        isDefault = true
-                    }
-                }
-            });
-        }
-
-
         public async Task Process(CancellationToken cancellationToken)
         {
-            await this.SendContextCreated();
-
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult request = await this.m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             while (!request.CloseStatus.HasValue)
@@ -191,20 +172,31 @@ namespace EchoApp
 
                 object methodResult = null;
                 string errorMessage = "not implemented";
-                if (messageObject.TryGetValue("method", out JToken method)
-                && messageObject.TryGetValue("params", out JToken methodParams))
+                if (messageObject.TryGetValue("method", out JToken method))
                 {
+                    messageObject.TryGetValue("params", out JToken methodParams);
                     if(this.m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation)) {
-                        methodResult = methodImplementation(methodParams);
+                        methodResult = await methodImplementation(methodParams);
                         errorMessage = null;
                     }
                 }
 
+                object result;
+                if(errorMessage == null) {
+                    result = new {
+                        id = id,
+                        result = methodResult
+                    };
+                } 
+                else {
+                    result = new {
+                        id = id,
+                        error = errorMessage 
+                    };
+                }
+
                 // we got an execution, let's send the answer
-                var requestResponse = JsonConvert.SerializeObject(new JObject(
-                    new JProperty("id", id),
-                    new JProperty(errorMessage == null ? "error" : "result", errorMessage ?? methodResult)
-                ));
+                var requestResponse = JsonConvert.SerializeObject(result);
 
                 await this.m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(requestResponse),
                                                                   offset: 0,
@@ -217,6 +209,12 @@ namespace EchoApp
                 request = await this.m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
             await this.m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
+        }
+
+        public void RegisterCommandHandler<T>(Func<T,Task<ICommandResponse<T>>> handler) 
+        where T: class, ICommand
+        {
+            this.m_commandHandlers[((T)Activator.CreateInstance(typeof(T))).CommandName] = async  _ => await handler(  _?.ToObject<T>());
         }
     }
 }
