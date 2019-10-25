@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BaristaLabs.ChromeDevTools.Runtime;
+using BaristaLabs.ChromeDevTools.Runtime.Console;
 using BaristaLabs.ChromeDevTools.Runtime.Log;
+using BaristaLabs.ChromeDevTools.Runtime.Runtime;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -120,21 +122,19 @@ namespace EchoApp
                         await context.Response.WriteAsync(
                         @"{  
                                 ""Browser"": ""node.js/v10.14.2"",
-  ""Protocol-Version"": ""1.1""
+  ""Protocol-Version"": ""1.3""
                            }");
                         break;
                     case "/json":
                     case "/json/list":
-                     context.Response.ContentType = "application/json; charset=UTF-8";
-                    
-                        var response = 
+                    var response = 
                         @"[ {
-  ""description"": ""node.js instance"",
-  ""devtoolsFrontendUrl"": ""chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
-  ""devtoolsFrontendUrlCompat"": ""chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome"",
+  ""description"": ""virtual instance"",
+  ""devtoolsFrontendUrl"": ""chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome\\"",
+  ""devtoolsFrontendUrlCompat"": ""chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome\\"",
   ""faviconUrl"": ""https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509"",
   ""id"": ""67b14650-5755-42ae-a255-25f9e8329fe0"",
-  ""title"": ""node[fred]"",
+  ""title"": ""virtual instance for fred"",
   ""type"": ""node"",
   ""url"": ""file://"",
   ""webSocketDebuggerUrl"": """ + wsAddress + @"chrome""
@@ -167,12 +167,13 @@ namespace EchoApp
                 ));
 
                 if(result.MessageType == WebSocketMessageType.Text) {
-                    var logEntry = GetLogEvent(Encoding.ASCII.GetString(buffer.Take(result.Count).ToArray()));
-                    await Task.WhenAll(this.chromeConnection.Select(_ => _.SendEvent(logEntry)));
+                    var logEntry = Encoding.ASCII.GetString(buffer.Take(result.Count).ToArray());
+                    await Task.WhenAll(this.chromeConnection.Select(_ => _.SendEvent(GetLogEvent(logEntry, _.Context))));
                 }
 
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
+            this.communicationSession.Remove(webSocket);
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
 
@@ -191,16 +192,27 @@ namespace EchoApp
         private List<ChromeSession> chromeConnection = new List<ChromeSession>();
         private List<WebSocket> communicationSession = new List<WebSocket>();
 
-        private EntryAddedEvent GetLogEvent(string logMessage) {
-            var logEvent = new EntryAddedEvent {
-                Entry = new LogEntry {
-                    Source = "other",
-                    Level = "info",
-                    Text = logMessage,
-                    Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
-                }
-            };
+        private IEvent GetLogEvent(string logMessage, int contextId) {
+            // var logEvent = new EntryAddedEvent {
+            //     Entry = new LogEntry {
+            //         Source = "javascript",
+            //         Level = "info",
+            //         Text = logMessage,
+            //         Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
+            //     }
+            // };
 
+            var logEvent  = new ConsoleAPICalledEvent {
+               Type = "log",
+               Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+               ExecutionContextId = contextId,
+               Args= new RemoteObject[] {
+                   new RemoteObject{
+                       Type = "string",
+                       Value = logMessage
+                   }
+               }
+            };
             return logEvent;
         }
     }   

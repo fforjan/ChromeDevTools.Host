@@ -1,6 +1,7 @@
 namespace EchoApp
 {
     using BaristaLabs.ChromeDevTools.Runtime;
+    using BaristaLabs.ChromeDevTools.Runtime.Runtime;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -11,7 +12,6 @@ namespace EchoApp
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Threading.Tasks.Dataflow;
 
     /// <summary>
     /// Represents a websocket connection to a running chrome instance that can be used to send commands and recieve events.
@@ -45,7 +45,7 @@ namespace EchoApp
         {
             CommandTimeout = 5000;
             m_logger = logger;
-
+            this.m_sessionSocket = webSocket;
         }
 
         /// <summary>
@@ -152,8 +152,34 @@ namespace EchoApp
         }
         #endregion
 
+        public int Context {get { return 1; } }
+
+        private Task SendContextCreated() {
+            // {{
+//   "id": 1,
+//   "origin": "",
+//   "name": "node[54441]",
+//   "auxData": {
+//     "isDefault": true
+//   }
+// }}
+            return this.SendEvent(new ExecutionContextCreatedEvent {
+                Context = new ExecutionContextDescription {
+                    Id = this.Context,
+                    Origin = "",
+                    Name = "virtual context",
+                    AuxData = new {
+                        isDefault = true
+                    }
+                }
+            });
+        }
+
+
         public async Task Process(CancellationToken cancellationToken)
         {
+            await this.SendContextCreated();
+
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult request = await this.m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             while (!request.CloseStatus.HasValue)
