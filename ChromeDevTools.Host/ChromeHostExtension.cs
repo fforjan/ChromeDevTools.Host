@@ -36,7 +36,7 @@ namespace ChromeDevTools.Host
                             if (context.WebSockets.IsWebSocketRequest)
                             {
                                 WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                                await Chrome(context, webSocket, chromeSessionLogger);
+                                await Chrome(webSocket, chromeSessionLogger);
                             }
                             else
                             {
@@ -51,7 +51,7 @@ namespace ChromeDevTools.Host
                         await context.Response.WriteAsync(
                         @"{  
                                 ""Browser"": ""node.js/v10.14.2"",
-  ""Protocol-Version"": ""1.3""
+                                ""Protocol-Version"": ""1.3""
                            }");
                         break;
                     case "/json":
@@ -83,7 +83,7 @@ namespace ChromeDevTools.Host
         }
 
 
-        private static async Task Chrome(HttpContext context, WebSocket webSocket, ILogger<ChromeSession> logger)
+        private static async Task Chrome(WebSocket webSocket, ILogger<ChromeSession> logger)
         {
 
 
