@@ -1,4 +1,6 @@
-﻿namespace ChromeDevTools.Host.FwkSelfHost
+﻿using System.Linq;
+
+namespace ChromeDevTools.Host.FwkSelfHost
 {
     using System;
     using System.Collections.Generic;
@@ -112,9 +114,9 @@
             }
         }
 
-        public static void ForEach(Action<ChromeProtocolSession> chromeSessionAction)
+        public static Task ForEach(Func<ChromeProtocolSession, Task> chromeSessionAction)
         {
-            sessions.ForEach(chromeSessionAction);
+            return Task.WhenAll(sessions.Select(chromeSessionAction));
         }
     }
 }
