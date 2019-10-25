@@ -1,90 +1,102 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-
-namespace ChromeDevTools.Host.FwkSelfHost
+﻿namespace ChromeDevTools.Host.FwkSelfHost
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+
     public class ChromeSessionWebServer
     {
-        public static List<ChromeProtocolSession> Sessions { get; } = new List<ChromeProtocolSession>();
+        private static readonly List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
+
+        public static IReadOnlyCollection<ChromeProtocolSession> Sessions { get; } = sessions;
+
         public static async Task Start(string listeningAddress, CancellationToken cancellationToken)
         {
             try
             {
-                var listener = new HttpListener();
-                listener.Prefixes.Add(listeningAddress);
-                listener.Start();
-                Console.Out.WriteLine("listening on "+ listeningAddress);
-
-                while (!cancellationToken.IsCancellationRequested)
+                using (var listener = new HttpListener())
                 {
-                    var context = await listener.GetContextAsync();
+                    listener.Prefixes.Add(listeningAddress);
+                    listener.Start();
+                    Console.Out.WriteLine("listening on " + listeningAddress);
 
-                    switch (context.Request.Url.AbsolutePath)
+                    while (!cancellationToken.IsCancellationRequested)
                     {
-                        case "/chrome":
+                        var context = await listener.GetContextAsync();
+
+                        switch (context.Request.Url.AbsolutePath)
                         {
-                            if (context.Request.IsWebSocketRequest)
+                            case "/chrome":
                             {
-                                _ = Task.Run(async () =>
+                                if (context.Request.IsWebSocketRequest)
                                 {
-                                    var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                    var session = new ChromeProtocolSession(null,
-                                        webSocketContext.WebSocket);
-                                    Sessions.Add(session);
-                                    await session.Process(cancellationToken);
-                                    Sessions.Remove(session);
-                                });
+                                    try
+                                    {
+                                        _ = Task.Run(async () =>
+                                        {
+                                            var webSocketContext = await context.AcceptWebSocketAsync(null);
+                                            var session = new ChromeProtocolSession(null,
+                                                webSocketContext.WebSocket);
+                                            sessions.Add(session);
+                                            await session.Process(cancellationToken);
+                                            sessions.Remove(session);
+                                        });
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.Error.WriteLine(e.ToString());
+                                    }
+                                }
+                                else
+                                {
+                                    context.Response.StatusCode = 400;
+                                }
+
+                                break;
                             }
-                            else
+
+                            case "/json/version":
                             {
-                                context.Response.StatusCode = 400;
-                            }
-
-                            break;
-                        }
-
-                        case "/json/version":
-                        {
-                            var responseString = @"{  
+                                var responseString = @"{  
                                 ""Browser"": ""node.js/v10.14.2"",
                                 ""Protocol-Version"": ""1.3""
                            }";
 
-                            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                            context.Response.ContentType = "application/json; charset=UTF-8";
-                            // Get a response stream and write the response to it.
-                            context.Response.ContentLength64 = buffer.Length;
-                            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                            context.Response.OutputStream.Close();
+                                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                context.Response.ContentType = "application/json; charset=UTF-8";
+                                // Get a response stream and write the response to it.
+                                context.Response.ContentLength64 = buffer.Length;
+                                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                context.Response.OutputStream.Close();
                                 break;
-                        }
+                            }
 
-                        case "/json":
-                        case "/json/list":
-                        {
-                            var responseObj = new[]
+                            case "/json":
+                            case "/json/list":
                             {
-                                ChromeSessionInstanceDescription.CreateFrom(
-                                    "localhost:12345",
-                                    "virtual instance for FwkConsoleApp",
-                                    "virtual instance",
-                                    "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
-                                    Guid.NewGuid()
-                                )
-                            };
+                                var responseObj = new[]
+                                {
+                                    ChromeSessionInstanceDescription.CreateFrom(
+                                        "localhost:12345",
+                                        "virtual instance for FwkConsoleApp",
+                                        "virtual instance",
+                                        "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
+                                        Guid.NewGuid()
+                                    )
+                                };
 
-                            var responseString = JsonConvert.SerializeObject(responseObj);
-                            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                            context.Response.ContentType = "application/json; charset=UTF-8";
-                            // Get a response stream and write the response to it.
-                            context.Response.ContentLength64 = buffer.Length;
-                            context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                            context.Response.OutputStream.Close();
-                            break;
+                                var responseString = JsonConvert.SerializeObject(responseObj);
+                                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                context.Response.ContentType = "application/json; charset=UTF-8";
+                                // Get a response stream and write the response to it.
+                                context.Response.ContentLength64 = buffer.Length;
+                                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                context.Response.OutputStream.Close();
+                                break;
+                            }
                         }
                     }
                 }
@@ -93,6 +105,11 @@ namespace ChromeDevTools.Host.FwkSelfHost
             {
                 Console.Error.WriteLine(e.ToString());
             }
+        }
+
+        public static void ForEach(Action<ChromeProtocolSession> chromeSessionAction)
+        {
+            sessions.ForEach(chromeSessionAction);
         }
     }
 }
