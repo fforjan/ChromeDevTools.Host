@@ -15,9 +15,9 @@ namespace ChromeDevTools.Host
     /// <summary>
     /// Represents a websocket connection to a running chrome instance that can be used to send commands and recieve events.
     ///</summary>
-    public class ChromeSession : IDisposable
+    public class ChromeProtocolSession : IDisposable
     {
-        private readonly ILogger<ChromeSession> m_logger;
+        private readonly ILogger<ChromeProtocolSession> m_logger;
 
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
@@ -41,7 +41,7 @@ namespace ChromeDevTools.Host
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         /// <param name="logger"></param>
-        public ChromeSession(ILogger<ChromeSession> logger, WebSocket webSocket)
+        public ChromeProtocolSession(ILogger<ChromeProtocolSession> logger, WebSocket webSocket)
         {
             CommandTimeout = 5000;
             m_logger = logger;
@@ -56,7 +56,6 @@ namespace ChromeDevTools.Host
         /// Sends the specified command and returns the associated command response.
         /// </summary>
         /// <typeparam name="TCommand"></typeparam>
-        /// <param name="command"></param>
         /// <param name="cancellationToken"></param>
         /// <param name="millisecondsTimeout"></param>
         /// <param name="throwExceptionIfResponseNotReceived"></param>

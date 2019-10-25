@@ -7,9 +7,9 @@ namespace ChromeDevTools.Host
     public class DebuggerHandler
     {
 
-        private readonly ChromeSession session;
+        private readonly ChromeProtocolSession session;
 
-        public DebuggerHandler(ChromeSession session)
+        public DebuggerHandler(ChromeProtocolSession session)
         {
             this.session = session;
 

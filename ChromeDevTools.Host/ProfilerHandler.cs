@@ -8,9 +8,9 @@ namespace ChromeDevTools.Host
     public class ProfilerHandler
     {
 
-        private readonly ChromeSession session;
+        private readonly ChromeProtocolSession session;
 
-        public ProfilerHandler(ChromeSession session)
+        public ProfilerHandler(ChromeProtocolSession session)
         {
             this.session = session;
 

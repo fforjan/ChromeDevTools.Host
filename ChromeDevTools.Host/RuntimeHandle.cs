@@ -7,9 +7,9 @@ namespace ChromeDevTools.Host
 
     public class RuntimeHandle
     {
-        private readonly ChromeSession session;
+        private readonly ChromeProtocolSession session;
 
-        public RuntimeHandle(ChromeSession session)
+        public RuntimeHandle(ChromeProtocolSession session)
         {
             this.session = session;
             this.IsEnable = false;

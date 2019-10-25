@@ -10,14 +10,14 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace ChromeDevTools.Host
+namespace ChromeDevTools.Host.AspNetCore
 {
     public static class ChromeHostExtension
     {
 
         public static void HostChromeProtocol(this IApplicationBuilder app)
         {
-            var chromeSessionLogger = app.ApplicationServices.GetService<ILogger<ChromeSession>>();
+            var chromeSessionLogger = app.ApplicationServices.GetService<ILogger<ChromeProtocolSession>>();
 
             var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
 
@@ -83,11 +83,11 @@ namespace ChromeDevTools.Host
         }
 
 
-        private static async Task Chrome(WebSocket webSocket, ILogger<ChromeSession> logger)
+        private static async Task Chrome(WebSocket webSocket, ILogger<ChromeProtocolSession> logger)
         {
 
 
-            var session = new ChromeSession(logger, webSocket);
+            var session = new ChromeProtocolSession(logger, webSocket);
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);
@@ -97,8 +97,8 @@ namespace ChromeDevTools.Host
         }
 
 
-        private static List<ChromeSession> chromeSessions = new List<ChromeSession>();
+        private static List<ChromeProtocolSession> chromeSessions = new List<ChromeProtocolSession>();
 
-        public static IReadOnlyList<ChromeSession> ChromeSessions { get => chromeSessions; }
+        public static IReadOnlyList<ChromeProtocolSession> ChromeSessions { get => chromeSessions; }
     }    
 }
