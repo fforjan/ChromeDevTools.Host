@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace ChromeDevTools.Host.FwkConsoleApp
 {
@@ -7,7 +9,15 @@ namespace ChromeDevTools.Host.FwkConsoleApp
     {
         static void Main(string[] args)
         {
-           
+            var server = ChromeSessionWebServer.Start(CancellationToken.None);
+
+            int i = 0;
+            while (true)
+            {
+                Thread.Sleep(1000);
+                ChromeSessionWebServer.Sessions.ForEach(_ => _.RuntimeHandle.Log($"Ticks : {i}"));
+                i++;
+            }
         }
     }
 }

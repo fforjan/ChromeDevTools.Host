@@ -47,7 +47,7 @@ namespace ChromeDevTools.Host
                 DevtoolsFrontendUrl =
                     $"chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws={hostIp}/chrome/",
                 DevtoolsFrontendUrlCompat =
-                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={hostIp}chrome",
+                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={hostIp}/chrome/",
                 FaviconUrl =
                     faviconUrl,
                 Id = id.ToString(),

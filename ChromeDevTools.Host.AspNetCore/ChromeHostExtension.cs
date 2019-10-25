@@ -56,7 +56,7 @@ namespace ChromeDevTools.Host.AspNetCore
                         {
                             ChromeSessionInstanceDescription.CreateFrom(
                                 $"{serveruri.Host}:{serveruri.Port}",
-                                "virtual instance for fred",
+                                "virtual instance for AspNetCore",
                                 "virtual instance",
                                 "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
                                 Guid.NewGuid()
