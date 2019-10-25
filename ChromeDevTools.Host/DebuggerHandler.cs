@@ -7,7 +7,7 @@ namespace ChromeDevTools.Host
     public class DebuggerHandler
     {
 
-        private ChromeSession session;
+        private readonly ChromeSession session;
 
         public DebuggerHandler(ChromeSession session)
         {

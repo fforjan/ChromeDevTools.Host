@@ -7,39 +7,51 @@ namespace ChromeDevTools.Host
 
     public class RuntimeHandle
     {
-
-        private ChromeSession session;
+        private readonly ChromeSession session;
 
         public RuntimeHandle(ChromeSession session)
         {
             this.session = session;
+            this.IsEnable = false;
 
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
         }
 
+        public bool IsEnable { get; private set; }
+
         public async Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
-
-            await session.SendEvent(new ExecutionContextCreatedEvent
+            if (!this.IsEnable)
             {
-                Context = new ExecutionContextDescription
+                this.IsEnable = true;
+                await session.SendEvent(new ExecutionContextCreatedEvent
                 {
-                    Id = Context,
-                    Origin = "",
-                    Name = "virtual context",
-                    AuxData = new
+                    Context = new ExecutionContextDescription
                     {
-                        isDefault = true
+                        Id = Context,
+                        Origin = "",
+                        Name = "virtual context",
+                        AuxData = new
+                        {
+                            isDefault = true
+                        }
                     }
-                }
-            });
+                });
+            }
 
             return new EnableCommandResponse();
         }
 
         public Task Log(string logEntry)
         {
-            return session.SendEvent(GetLogEvent(logEntry));
+            if (this.IsEnable)
+            {
+                return session.SendEvent(GetLogEvent(logEntry));
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
         }
 
         private ConsoleAPICalledEvent GetLogEvent(string logMessage)

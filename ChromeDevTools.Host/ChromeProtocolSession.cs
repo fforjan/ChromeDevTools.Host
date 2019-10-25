@@ -41,7 +41,6 @@ namespace ChromeDevTools.Host
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="endpointAddress"></param>
         public ChromeSession(ILogger<ChromeSession> logger, WebSocket webSocket)
         {
             CommandTimeout = 5000;

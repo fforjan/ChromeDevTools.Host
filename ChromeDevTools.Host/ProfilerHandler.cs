@@ -8,7 +8,7 @@ namespace ChromeDevTools.Host
     public class ProfilerHandler
     {
 
-        private ChromeSession session;
+        private readonly ChromeSession session;
 
         public ProfilerHandler(ChromeSession session)
         {
@@ -20,9 +20,7 @@ namespace ChromeDevTools.Host
         public Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
 
-            return Task.FromResult<ICommandResponse<EnableCommand>>(new EnableCommandResponse
-            {
-            });
+            return Task.FromResult<ICommandResponse<EnableCommand>>(new EnableCommandResponse());
         }
     }
 }
