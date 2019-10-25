@@ -1,4 +1,4 @@
-namespace EchoApp
+namespace ChromeDevTools.Host
 {
     using BaristaLabs.ChromeDevTools.Runtime;
     using Microsoft.Extensions.Logging;
@@ -19,7 +19,7 @@ namespace EchoApp
     {
         private readonly ILogger<ChromeSession> m_logger;
 
-        private readonly ConcurrentDictionary<string, Func<JToken,Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken,Task<ICommandResponse>>>();
+        private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
 
         private WebSocket m_sessionSocket;
@@ -27,8 +27,6 @@ namespace EchoApp
         public RuntimeHandle RuntimeHandle { get; }
         public DebuggerHandler DebuggerHandler { get; }
         public ProfilerHandler ProfilerHandler { get; }
-
-        private long m_currentEventId = 0;
 
         /// <summary>
         /// Gets or sets the number of milliseconds to wait for a command to complete. Default is 5 seconds.
@@ -48,11 +46,11 @@ namespace EchoApp
         {
             CommandTimeout = 5000;
             m_logger = logger;
-            this.m_sessionSocket = webSocket;
+            m_sessionSocket = webSocket;
 
-            this.RuntimeHandle = new RuntimeHandle(this);
-            this.DebuggerHandler = new DebuggerHandler(this);
-            this.ProfilerHandler = new ProfilerHandler(this);
+            RuntimeHandle = new RuntimeHandle(this);
+            DebuggerHandler = new DebuggerHandler(this);
+            ProfilerHandler = new ProfilerHandler(this);
         }
 
         /// <summary>
@@ -64,7 +62,7 @@ namespace EchoApp
         /// <param name="millisecondsTimeout"></param>
         /// <param name="throwExceptionIfResponseNotReceived"></param>
         /// <returns></returns>
-        public async Task SendEvent<TEvent>(TEvent @event, CancellationToken cancellationToken = default(CancellationToken), int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
+        public async Task SendEvent<TEvent>(TEvent @event, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
             where TEvent : IEvent
         {
             if (@event == null)
@@ -86,12 +84,12 @@ namespace EchoApp
         /// <param name="millisecondsTimeout"></param>
         /// <param name="throwExceptionIfResponseNotReceived"></param>
         /// <returns></returns>
-        public Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default(CancellationToken), int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
+        public Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
         {
             var message = new
             {
                 method = eventName,
-                @params = @params
+                @params
             };
 
             if (millisecondsTimeout.HasValue == false)
@@ -101,7 +99,7 @@ namespace EchoApp
 
             var contents = JsonConvert.SerializeObject(message);
 
-            return this.m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
+            return m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
                                                                   offset: 0,
                                                                   count: contents.Length),
                                    messageType: WebSocketMessageType.Text,
@@ -161,7 +159,7 @@ namespace EchoApp
         public async Task Process(CancellationToken cancellationToken)
         {
             var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult request = await this.m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            WebSocketReceiveResult request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             while (!request.CloseStatus.HasValue)
             {
                 var message = Encoding.ASCII.GetString(buffer.Take(request.Count).ToArray());
@@ -174,30 +172,35 @@ namespace EchoApp
                 if (messageObject.TryGetValue("method", out JToken method))
                 {
                     messageObject.TryGetValue("params", out JToken methodParams);
-                    if(this.m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation)) {
+                    if (m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation))
+                    {
                         methodResult = await methodImplementation(methodParams);
                         errorMessage = null;
                     }
                 }
 
                 object result;
-                if(errorMessage == null) {
-                    result = new {
-                        id = id,
+                if (errorMessage == null)
+                {
+                    result = new
+                    {
+                        id,
                         result = methodResult
                     };
-                } 
-                else {
-                    result = new {
-                        id = id,
-                        error = errorMessage 
+                }
+                else
+                {
+                    result = new
+                    {
+                        id,
+                        error = errorMessage
                     };
                 }
 
                 // we got an execution, let's send the answer
                 var requestResponse = JsonConvert.SerializeObject(result);
 
-                await this.m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(requestResponse),
+                await m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(requestResponse),
                                                                   offset: 0,
                                                                   count: requestResponse.Length),
                                    messageType: WebSocketMessageType.Text,
@@ -205,15 +208,15 @@ namespace EchoApp
                                    cancellationToken: CancellationToken.None);
 
                 // wait for the next request
-                request = await this.m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
-            await this.m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
+            await m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
         }
 
-        public void RegisterCommandHandler<T>(Func<T,Task<ICommandResponse<T>>> handler) 
-        where T: class, ICommand
+        public void RegisterCommandHandler<T>(Func<T, Task<ICommandResponse<T>>> handler)
+        where T : class, ICommand
         {
-            this.m_commandHandlers[((T)Activator.CreateInstance(typeof(T))).CommandName] = async  _ => await handler(  _?.ToObject<T>());
+            m_commandHandlers[((T)Activator.CreateInstance(typeof(T))).CommandName] = async _ => await handler(_?.ToObject<T>());
         }
     }
 }
