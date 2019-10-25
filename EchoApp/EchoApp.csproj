@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BaristaLabs.ChromeDevTools.Runtime" Version="70.0.3538.77" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
