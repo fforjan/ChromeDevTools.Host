@@ -90,7 +90,6 @@ namespace EchoApp
         {
             var message = new
             {
-                id = Interlocked.Increment(ref m_currentEventId),
                 method = eventName,
                 @params = @params
             };
@@ -98,7 +97,7 @@ namespace EchoApp
             if (millisecondsTimeout.HasValue == false)
                 millisecondsTimeout = CommandTimeout;
 
-            LogTrace("Sending {id} {method}: {params}", message.id, message.method, @params.ToString());
+            LogTrace($"Sending {message.method}: {message.@params.ToString()}");
 
             var contents = JsonConvert.SerializeObject(message);
 

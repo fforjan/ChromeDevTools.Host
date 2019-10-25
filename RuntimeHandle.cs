@@ -31,21 +31,12 @@ namespace EchoApp
             return new EnableCommandResponse();
         }
 
-        internal Task EmitLog(string logEntry)
+        internal Task Log(string logEntry)
         {
             return this.session.SendEvent(GetLogEvent(logEntry));
         }
 
-         private IEvent GetLogEvent(string logMessage) {
-            // var logEvent = new EntryAddedEvent {
-            //     Entry = new LogEntry {
-            //         Source = "javascript",
-            //         Level = "info",
-            //         Text = logMessage,
-            //         Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds()
-            //     }
-            // };
-
+         private ConsoleAPICalledEvent GetLogEvent(string logMessage) {
             var logEvent  = new ConsoleAPICalledEvent {
                Type = "log",
                Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
@@ -57,6 +48,7 @@ namespace EchoApp
                    }
                }
             };
+
             return logEvent;
         }
 
