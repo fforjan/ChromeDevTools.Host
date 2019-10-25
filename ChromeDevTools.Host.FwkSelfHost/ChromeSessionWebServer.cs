@@ -10,13 +10,14 @@ namespace ChromeDevTools.Host.FwkSelfHost
     public class ChromeSessionWebServer
     {
         public static List<ChromeProtocolSession> Sessions { get; } = new List<ChromeProtocolSession>();
-        public static async Task Start(CancellationToken cancellationToken)
+        public static async Task Start(string listeningAddress, CancellationToken cancellationToken)
         {
             try
             {
                 var listener = new HttpListener();
-                listener.Prefixes.Add("http://127.0.0.1:12345/");
+                listener.Prefixes.Add(listeningAddress);
                 listener.Start();
+                Console.Out.WriteLine("listening on "+ listeningAddress);
 
                 while (!cancellationToken.IsCancellationRequested)
                 {

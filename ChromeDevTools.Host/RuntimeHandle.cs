@@ -78,11 +78,11 @@ namespace ChromeDevTools.Host
             }
         } 
         
-        public Task Info(string logEntry)
+        public Task Debug(string logEntry)
         {
             if (this.IsEnable)
             {
-                return session.SendEvent(GetLogEvent(logEntry, "info"));
+                return session.SendEvent(GetLogEvent(logEntry, "debug"));
             }
             else
             {
