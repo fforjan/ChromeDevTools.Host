@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChromeDevTools.Host", "Chro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChromeDevTools.Host.AspNetCore", "ChromeDevTools.Host.AspNetCore\ChromeDevTools.Host.AspNetCore.csproj", "{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeDevTools.Host.FwkConsoleApp", "ChromeDevTools.Host.FwkConsoleApp\ChromeDevTools.Host.FwkConsoleApp.csproj", "{17A275DD-FF55-4C2A-8D15-285B77D211B7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5ADFD306-77E4-40C8-ADF1-B764A3222910}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeDevTools.Host.FwkSelfHost", "ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj", "{17A275DD-FF55-4C2A-8D15-285B77D211B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
