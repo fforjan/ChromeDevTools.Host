@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using System;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -8,24 +9,19 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Newtonsoft.Json;
 
 namespace ChromeDevTools.Host.AspNetCore
 {
     public static class ChromeHostExtension
     {
-
         public static void HostChromeProtocol(this IApplicationBuilder app)
         {
             var chromeSessionLogger = app.ApplicationServices.GetService<ILogger<ChromeProtocolSession>>();
 
             var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
 
-            var address = serverAddressesFeature.Addresses.First().Replace("localhost", "127.0.0.1");
-
-            var noPrefixAddress = address.Substring(address.IndexOf('/') + 2);
-
-            var wsAddress = "ws" + address.Substring(address.IndexOf(':'));
+            var serveruri = new Uri(serverAddressesFeature.Addresses.First());
 
             app.Use(async (context, next) =>
             {
@@ -56,20 +52,19 @@ namespace ChromeDevTools.Host.AspNetCore
                         break;
                     case "/json":
                     case "/json/list":
-                        var response =
-                            @"[ {
-  ""description"": ""virtual instance"",
-  ""devtoolsFrontendUrl"": ""chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome\\"",
-  ""devtoolsFrontendUrlCompat"": ""chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws=" + noPrefixAddress + @"chrome\\"",
-  ""faviconUrl"": ""https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509"",
-  ""id"": ""67b14650-5755-42ae-a255-25f9e8329fe0"",
-  ""title"": ""virtual instance for fred"",
-  ""type"": ""node"",
-  ""url"": ""file://"",
-  ""webSocketDebuggerUrl"": """ + wsAddress + @"chrome""
-} ]
-";
+                        var responseObj = new[]
+                        {
+                            ChromeSessionInstanceDescription.CreateFrom(
+                                $"{serveruri.Host}:{serveruri.Port}",
+                                "virtual instance for fred",
+                                "virtual instance",
+                                "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
+                                Guid.NewGuid()
+                            )
+                        };
 
+                        var response = JsonConvert.SerializeObject(responseObj);
+                        context.Response.ContentType = "application/json; charset=UTF-8";
                         context.Response.Headers.Add("Content-Length", response.Length.ToString());
 
                         await context.Response.WriteAsync(response);

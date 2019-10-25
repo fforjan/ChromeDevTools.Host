@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoApp", "EchoApp\EchoApp.csproj", "{3B410554-560C-4F69-83B4-034DDCF3D27F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoApp", "EchoApp\EchoApp.csproj", "{3B410554-560C-4F69-83B4-034DDCF3D27F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeDevTools.Host", "ChromeDevTools.Host\ChromeDevTools.Host.csproj", "{F0C70AA3-66F5-4E36-AD98-3406156D2B88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChromeDevTools.Host", "ChromeDevTools.Host\ChromeDevTools.Host.csproj", "{F0C70AA3-66F5-4E36-AD98-3406156D2B88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeDevTools.Host.AspNetCore", "ChromeDevTools.Host.AspNetCore\ChromeDevTools.Host.AspNetCore.csproj", "{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChromeDevTools.Host.AspNetCore", "ChromeDevTools.Host.AspNetCore\ChromeDevTools.Host.AspNetCore.csproj", "{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeDevTools.Host.FwkConsoleApp", "ChromeDevTools.Host.FwkConsoleApp\ChromeDevTools.Host.FwkConsoleApp.csproj", "{17A275DD-FF55-4C2A-8D15-285B77D211B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,9 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3B410554-560C-4F69-83B4-034DDCF3D27F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -58,5 +57,23 @@ Global
 		{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}.Release|x64.Build.0 = Release|Any CPU
 		{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}.Release|x86.ActiveCfg = Release|Any CPU
 		{748EF7CB-E137-4D8C-BAA3-EF7C86A7CDD9}.Release|x86.Build.0 = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|x64.Build.0 = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Debug|x86.Build.0 = Debug|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|x64.ActiveCfg = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|x64.Build.0 = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|x86.ActiveCfg = Release|Any CPU
+		{17A275DD-FF55-4C2A-8D15-285B77D211B7}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {00E52224-FF90-4149-BAEC-6349423E4E58}
 	EndGlobalSection
 EndGlobal

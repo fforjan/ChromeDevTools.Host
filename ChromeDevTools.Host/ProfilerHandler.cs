@@ -19,7 +19,6 @@ namespace ChromeDevTools.Host
 
         public Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
-
             return Task.FromResult<ICommandResponse<EnableCommand>>(new EnableCommandResponse());
         }
     }
