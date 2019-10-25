@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{17A275DD-FF55-4C2A-8D15-285B77D211B7}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>ChromeDevTools.Host.FwkConsoleApp</RootNamespace>
-    <AssemblyName>ChromeDevTools.Host.FwkConsoleApp</AssemblyName>
+    <ProjectGuid>{4223CA87-0E39-41FF-8008-162719CA6130}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FwkConsoleApp</RootNamespace>
+    <AssemblyName>FwkConsoleApp</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,16 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.3.0.0\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -52,14 +43,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChromeSessionWebServer.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj">
+      <Project>{17A275DD-FF55-4C2A-8D15-285B77D211B7}</Project>
+      <Name>ChromeDevTools.Host.FwkSelfHost</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ChromeDevTools.Host\ChromeDevTools.Host.csproj">
       <Project>{F0C70AA3-66F5-4E36-AD98-3406156D2B88}</Project>
       <Name>ChromeDevTools.Host</Name>

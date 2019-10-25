@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace ChromeDevTools.Host.FwkConsoleApp
+namespace ChromeDevTools.Host.FwkSelfHost
 {
     public class ChromeSessionWebServer
     {

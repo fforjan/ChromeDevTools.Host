@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using ChromeDevTools.Host.FwkSelfHost;
 
-namespace ChromeDevTools.Host.FwkConsoleApp
+namespace FwkConsoleApp
 {
     class Program
     {
