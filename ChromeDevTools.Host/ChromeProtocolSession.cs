@@ -1,3 +1,5 @@
+using System.Net.WebSockets;
+
 namespace ChromeDevTools.Host
 {
     using BaristaLabs.ChromeDevTools.Runtime;
@@ -11,22 +13,6 @@ namespace ChromeDevTools.Host
     using System.Threading;
     using System.Threading.Tasks;
 
-    public struct Receiveinfo
-    {
-        public bool IsClosed { get; set; }
-        
-        public string StatusDescription { get; set; }
-
-        public string Content { get; set; }
-    }
-    public interface IWebSocket
-    {
-        Task SendAsync(string content, CancellationToken token);
-
-        Task CloseAsync(string statusDescription, CancellationToken token);
-
-        Task<Receiveinfo> ReceiveAsync(CancellationToken token);
-    }
 
     /// <summary>
     /// Represents a websocket connection to a running chrome instance that can be used to send commands and recieve events.
@@ -54,7 +40,7 @@ namespace ChromeDevTools.Host
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         /// <param name="logger"></param>
-        public ChromeProtocolSession(ILogger<ChromeProtocolSession> logger, IWebSocket webSocket)
+        public ChromeProtocolSession(ILogger<ChromeProtocolSession> logger, WebSocket webSocket)
         {
             CommandTimeout = 5000;
             m_logger = logger;
@@ -110,7 +96,12 @@ namespace ChromeDevTools.Host
 
             var contents = JsonConvert.SerializeObject(message);
 
-            return m_sessionSocket.SendAsync(contents, CancellationToken.None);
+            return m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
+                    offset: 0,
+                    count: contents.Length),
+                messageType: WebSocketMessageType.Text,
+                endOfMessage: true,
+                cancellationToken: CancellationToken.None);
 
         }
 
@@ -133,7 +124,7 @@ namespace ChromeDevTools.Host
 
         #region IDisposable Support
         private bool m_isDisposed = false;
-        private IWebSocket m_sessionSocket;
+        private WebSocket m_sessionSocket;
 
         private void Dispose(bool disposing)
         {
@@ -165,10 +156,12 @@ namespace ChromeDevTools.Host
 
         public async Task Process(CancellationToken cancellationToken)
         {
-            var request = await m_sessionSocket.ReceiveAsync(cancellationToken);
-            while (!request.IsClosed)
+            var buffer = new byte[1024 * 4];
+            WebSocketReceiveResult request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            while (!request.CloseStatus.HasValue)
             {
-                var messageObject = JObject.Parse(request.Content);
+                var message = Encoding.ASCII.GetString(buffer.Take(request.Count).ToArray());
+                var messageObject = JObject.Parse(message);
 
                 JToken id = messageObject["id"];
 
@@ -205,12 +198,17 @@ namespace ChromeDevTools.Host
                 // we got an execution, let's send the answer
                 var requestResponse = JsonConvert.SerializeObject(result);
 
-                await m_sessionSocket.SendAsync(requestResponse, CancellationToken.None);
+                await m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(requestResponse),
+                        offset: 0,
+                        count: requestResponse.Length),
+                    messageType: WebSocketMessageType.Text,
+                    endOfMessage: true,
+                    cancellationToken: CancellationToken.None);
 
                 // wait for the next request
-                request = await m_sessionSocket.ReceiveAsync(cancellationToken);
+                request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             }
-            await m_sessionSocket.CloseAsync(request.StatusDescription, cancellationToken);
+            await m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
         }
 
         public void RegisterCommandHandler<T>(Func<T, Task<ICommandResponse<T>>> handler)

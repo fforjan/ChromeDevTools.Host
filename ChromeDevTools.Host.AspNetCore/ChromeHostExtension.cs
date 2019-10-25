@@ -80,9 +80,7 @@ namespace ChromeDevTools.Host.AspNetCore
 
         private static async Task Chrome(WebSocket webSocket, ILogger<ChromeProtocolSession> logger)
         {
-
-
-            var session = new ChromeProtocolSession(logger, new WebSockerWrapper(webSocket));
+            var session = new ChromeProtocolSession(logger, webSocket);
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);

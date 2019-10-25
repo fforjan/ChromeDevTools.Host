@@ -26,7 +26,7 @@ namespace ChromeDevTools.Host.FwkConsoleApp
                             {
                                 var webSocketContext = await context.AcceptWebSocketAsync(null);
                                 var session = new ChromeProtocolSession(null,
-                                    new WebSockerWrapper(webSocketContext.WebSocket));
+                                    webSocketContext.WebSocket);
                                 await session.Process(cancellationToken);
                             });
                         }
@@ -36,7 +36,6 @@ namespace ChromeDevTools.Host.FwkConsoleApp
                         }
 
                         break;
-                    case ""
                 }
             }
         }
