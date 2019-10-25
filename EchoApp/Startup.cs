@@ -47,13 +47,7 @@ namespace EchoApp
             var noPrefixAddress =  address.Substring(address.IndexOf('/') +2);
             var wsAddress = "ws" +address.Substring(address.IndexOf(':'));
 
-#if NoOptions
-            #region UseWebSockets
-            app.UseWebSockets();
-            #endregion
-#endif
-#if UseOptions
-            #region UseWebSocketsOptions
+            #region UseWebSocket
             var webSocketOptions = new WebSocketOptions() 
             {
                 KeepAliveInterval = TimeSpan.FromSeconds(120),
@@ -62,21 +56,6 @@ namespace EchoApp
 
             app.UseWebSockets(webSocketOptions);
             #endregion
-#endif
-
-#if UseOptionsAO
-            #region UseWebSocketsOptionsAO
-            var webSocketOptions = new WebSocketOptions()
-            {
-                KeepAliveInterval = TimeSpan.FromSeconds(120),
-                ReceiveBufferSize = 4 * 1024
-            };
-            webSocketOptions.AllowedOrigins.Add("https://client.com");
-            webSocketOptions.AllowedOrigins.Add("https://www.client.com");
-
-            app.UseWebSockets(webSocketOptions);
-            #endregion
-#endif
 
             #region AcceptWebSocket
             app.Use(async (context, next) =>
