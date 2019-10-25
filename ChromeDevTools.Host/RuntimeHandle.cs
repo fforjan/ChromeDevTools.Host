@@ -46,7 +46,7 @@ namespace ChromeDevTools.Host
         {
             if (this.IsEnable)
             {
-                return session.SendEvent(GetLogEvent(logEntry));
+                return session.SendEvent(GetLogEvent(logEntry, "log"));
             }
             else
             {
@@ -54,11 +54,47 @@ namespace ChromeDevTools.Host
             }
         }
 
-        private ConsoleAPICalledEvent GetLogEvent(string logMessage)
+        public Task Warning(string logEntry)
+        {
+            if (this.IsEnable)
+            {
+                return session.SendEvent(GetLogEvent(logEntry, "warning"));
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
+        }
+
+        public Task Error(string logEntry)
+        {
+            if (this.IsEnable)
+            {
+                return session.SendEvent(GetLogEvent(logEntry, "error"));
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
+        } 
+        
+        public Task Info(string logEntry)
+        {
+            if (this.IsEnable)
+            {
+                return session.SendEvent(GetLogEvent(logEntry, "info"));
+            }
+            else
+            {
+                return Task.CompletedTask;
+            }
+        }
+
+        private ConsoleAPICalledEvent GetLogEvent(string logMessage, string level)
         {
             var logEvent = new ConsoleAPICalledEvent
             {
-                Type = "log",
+                Type = level,
                 Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 ExecutionContextId = Context,
                 Args = new RemoteObject[] {
