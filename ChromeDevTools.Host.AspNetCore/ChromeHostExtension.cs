@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace ChromeDevTools.Host.AspNetCore
 {
@@ -87,7 +87,7 @@ namespace ChromeDevTools.Host.AspNetCore
         {
 
 
-            var session = new ChromeProtocolSession(logger, webSocket);
+            var session = new ChromeProtocolSession(logger, new WebSockerWrapper(webSocket));
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);
