@@ -10,7 +10,12 @@ namespace FwkConsoleApp
     {
         static void Main()
         {
-            var server = ChromeSessionWebServer.Start("http://127.0.0.1:12345/", CancellationToken.None);
+            var server = ChromeSessionWebServer.Start("http://127.0.0.1:12345/",
+                "sample application",
+                "sample command line application",
+                "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
+                Guid.NewGuid(),
+                CancellationToken.None);
 
             int i = 0;
             while (true)
