@@ -1,5 +1,7 @@
 
 
+using System.Collections.Generic;
+
 namespace ChromeDevTools.Host
 {
     using ChromeDevTools.Host.Runtime;
@@ -18,14 +20,13 @@ namespace ChromeDevTools.Host
     /// <summary>
     /// Represents a websocket connection to a running chrome instance that can be used to send commands and recieve events.
     ///</summary>
-    public class ChromeProtocolSession : IDisposable
+    public class ChromeProtocolSession : IDisposable, IServiceProvider
     {
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
-        public RuntimeHandle RuntimeHandle { get; }
-        public DebuggerHandler DebuggerHandler { get; }
-        public ProfilerHandler ProfilerHandler { get; }
 
+        public IReadOnlyDictionary<Type, IRuntimeHandle> RuntimeHandlers;
+        
         /// <summary>
         /// Gets or sets the number of milliseconds to wait for a command to complete. Default is 5 seconds.
         /// </summary>
@@ -39,14 +40,12 @@ namespace ChromeDevTools.Host
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         /// <param name="logger"></param>
-        public ChromeProtocolSession(WebSocket webSocket)
+        public ChromeProtocolSession(WebSocket webSocket, params IRuntimeHandle[] handlers)
         {
             CommandTimeout = 5000;
             m_sessionSocket = webSocket;
 
-            RuntimeHandle = new RuntimeHandle(this);
-            DebuggerHandler = new DebuggerHandler(this);
-            ProfilerHandler = new ProfilerHandler(this);
+            this.RuntimeHandlers = handlers.ToDictionary(_ => _.GetType());
         }
 
         /// <summary>
@@ -207,6 +206,16 @@ namespace ChromeDevTools.Host
         where T : class, ICommand
         {
             m_commandHandlers[((T)Activator.CreateInstance(typeof(T))).CommandName] = async _ => await handler(_?.ToObject<T>());
+        }
+
+        public object GetService(Type serviceType)
+        {
+            if (this.RuntimeHandlers.TryGetValue(serviceType, out var runtimeHandle))
+            {
+                return runtimeHandle;
+            }
+
+            return null;
         }
     }
 }

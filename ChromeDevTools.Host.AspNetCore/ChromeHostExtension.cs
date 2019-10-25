@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 
 namespace ChromeDevTools.Host.AspNetCore
 {
+
     public static class ChromeHostExtension
     {
         public static void HostChromeProtocol(this IApplicationBuilder app)
@@ -78,7 +79,7 @@ namespace ChromeDevTools.Host.AspNetCore
 
         private static async Task Chrome(WebSocket webSocket)
         {
-            var session = new ChromeProtocolSession(webSocket);
+            var session = new ChromeProtocolSession(webSocket, new IRuntimeHandle[] { new RuntimeHandle(), new DebuggerHandler(), new ProfilerHandler()  });
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);

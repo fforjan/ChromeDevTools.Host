@@ -5,15 +5,22 @@ namespace ChromeDevTools.Host
     using System;
     using System.Threading.Tasks;
 
-    public class RuntimeHandle
+    public interface IRuntimeHandle
+    {
+        void Register(ChromeProtocolSession session);
+    }
+
+    public class RuntimeHandle : IRuntimeHandle
     {
         private readonly ChromeProtocolSession session;
 
-        public RuntimeHandle(ChromeProtocolSession session)
+        public RuntimeHandle()
         {
-            this.session = session;
             this.IsEnable = false;
+        }
 
+        public void Register(ChromeProtocolSession session) 
+        { 
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
         }
 

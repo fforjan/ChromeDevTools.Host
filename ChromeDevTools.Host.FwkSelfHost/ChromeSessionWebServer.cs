@@ -19,7 +19,8 @@ namespace ChromeDevTools.Host.FwkSelfHost
             string title,
             string description,
             string faviconUrl,
-            Guid id, CancellationToken cancellationToken)
+            Guid id, CancellationToken cancellationToken,
+            params IRuntimeHandle[] handlers)
         {
             try
             {
@@ -46,7 +47,7 @@ namespace ChromeDevTools.Host.FwkSelfHost
                                         _ = Task.Run(async () =>
                                         {
                                             var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                            var session = new ChromeProtocolSession(webSocketContext.WebSocket);
+                                            var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
                                             sessions.Add(session);
                                             await session.Process(cancellationToken);
                                             sessions.Remove(session);
