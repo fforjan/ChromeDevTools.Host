@@ -9,6 +9,23 @@ in case of chrome, you do not see the full set of low level TCP info or low-leve
 the network activities or the javascript objects.
 You can now do the same with your application !
 
+# Demo
+
+### **Step 1** - run the sample you want.
+``` 
+$ FwkConsoleApp.exe
+listening on http://127.0.0.1:12345/
+```
+
+### **Step 2** - configure the port in the chrome://inspect window
+![Configuration](Documentation/configuration.gif)
+
+### **Step 3** - explore !
+![Inspect](Documentation/inspecting.gif)
+
+
 # Implementation details
 This is the counter part of https://github.com/BaristaLabs/chrome-dev-tools-runtime and re-use part of it (JSON definition)
 
+- AspNet.Core is reuse the AspNet Core Middle
+- FwkSelfHosted is re-use the HttpListener available in .Net Framework.
