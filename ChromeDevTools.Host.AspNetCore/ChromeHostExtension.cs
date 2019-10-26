@@ -44,7 +44,7 @@ namespace ChromeDevTools.Host.AspNetCore
                         var responseObj = ChromeSessionProtocolVersion.CreateFrom("AspNetCore", typeof(IApplicationBuilder).Assembly.GetName().Version);
 
                         var response = JsonConvert.SerializeObject(responseObj);
-                        context.Response.ContentType = "application/json; charset=UTF-8";
+                        
                         context.Response.Headers.Add("Content-Length", response.Length.ToString());
 
                         await context.Response.WriteAsync(response);
