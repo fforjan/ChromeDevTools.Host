@@ -1,13 +1,11 @@
-using System;
-
-namespace ChromeDevTools.Host
+namespace ChromeDevTools.Host.Handlers
 {
     using System.Threading.Tasks;
 
     using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Profiler;
 
-    public class ProfilerHandler : IRuntimeHandle
+    public class ProfilerHandler : IRuntimeHandler
     {
         private ChromeProtocolSession session;
 

@@ -1,10 +1,12 @@
-namespace ChromeDevTools.Host
+namespace ChromeDevTools.Host.Handlers
 {
-    using ChromeDevTools.Host.Runtime;
+	using ChromeDevTools.Host;
+
+	using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Debugger;
     using System.Threading.Tasks;
 
-    public class DebuggerHandler : IRuntimeHandle
+    public class DebuggerHandler : IRuntimeHandler
     {
 
         private ChromeProtocolSession session;

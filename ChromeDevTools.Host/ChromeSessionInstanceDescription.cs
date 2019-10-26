@@ -1,8 +1,8 @@
-using Newtonsoft.Json;
-using System;
-
 namespace ChromeDevTools.Host
 {
+    using Newtonsoft.Json;
+    using System;
+
     public class ChromeSessionInstanceDescription
     {
         [JsonProperty("description")]

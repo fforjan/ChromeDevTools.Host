@@ -1,15 +1,12 @@
-
-
-using System.Collections.Generic;
-
 namespace ChromeDevTools.Host
 {
+    using ChromeDevTools.Host.Handlers;
     using ChromeDevTools.Host.Runtime;
-
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net.WebSockets;
     using System.Text;
@@ -22,14 +19,17 @@ namespace ChromeDevTools.Host
     ///</summary>
     public class ChromeProtocolSession : IDisposable, IServiceProvider
     {
-        static SemaphoreSlim sendLocker = new SemaphoreSlim(1, 1);
+        /// <summary>
+        /// Only one send request can be emitted at a time.
+        /// </summary>
+        static readonly SemaphoreSlim sendLocker = new SemaphoreSlim(1, 1);
 
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
 
         private readonly IDictionary<Type, object> serviceMapping = new Dictionary<Type, object>();
 
-        public IReadOnlyCollection<IRuntimeHandle> RuntimeHandlers;
+        public IReadOnlyCollection<IRuntimeHandler> RuntimeHandlers;
         
         /// <summary>
         /// Gets or sets the number of milliseconds to wait for a command to complete. Default is 5 seconds.
@@ -43,13 +43,10 @@ namespace ChromeDevTools.Host
         /// <summary>
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
-        /// <param name="logger"></param>
-        public ChromeProtocolSession(WebSocket webSocket, params IRuntimeHandle[] handlers)
+        public ChromeProtocolSession(WebSocket webSocket, params IRuntimeHandler[] handlers)
         {
             CommandTimeout = 5000;
             m_sessionSocket = webSocket;
-
-            var dictionary = new Dictionary<Type, IRuntimeHandle>();
 
             RuntimeHandlers = handlers;
 
@@ -64,11 +61,9 @@ namespace ChromeDevTools.Host
         /// </summary>
         /// <typeparam name="TCommand"></typeparam>
         /// <param name="cancellationToken"></param>
-        /// <param name="millisecondsTimeout"></param>
-        /// <param name="throwExceptionIfResponseNotReceived"></param>
         /// <returns></returns>
-        public async Task SendEvent<TEvent>(TEvent @event, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
-            where TEvent : IEvent
+        public async Task SendEvent<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
+            where TEvent : class, IEvent
         {
            
                 if (@event == null)
@@ -77,8 +72,7 @@ namespace ChromeDevTools.Host
 
                 if (EventTypeMap.TryGetMethodNameForType<TEvent>(out var eventName))
                 {
-                    await SendEvent(eventName, JToken.FromObject(@event), cancellationToken, millisecondsTimeout,
-                        throwExceptionIfResponseNotReceived);
+                    await SendEvent(eventName, JToken.FromObject(@event), cancellationToken);
                 }
           
         }
@@ -89,10 +83,10 @@ namespace ChromeDevTools.Host
         /// <param name="eventName"></param>
         /// <param name="params"></param>
         /// <param name="cancellationToken"></param>
-        /// <param name="millisecondsTimeout"></param>
-        /// <param name="throwExceptionIfResponseNotReceived"></param>
+        /// 
+        /// 
         /// <returns></returns>
-        public async Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
+        public async Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default)
         {
             var message = new
             {
@@ -100,8 +94,6 @@ namespace ChromeDevTools.Host
                 @params
             };
 
-            if (millisecondsTimeout.HasValue == false)
-                millisecondsTimeout = CommandTimeout;
 
             LogTrace($"Sending {message.method}: {message.@params.ToString()}");
 
@@ -111,12 +103,14 @@ namespace ChromeDevTools.Host
             try
             {
 
-                 await m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
-                        offset: 0,
-                        count: contents.Length),
-                    messageType: WebSocketMessageType.Text,
-                    endOfMessage: true,
-                    cancellationToken: CancellationToken.None);
+                 await m_sessionSocket.SendAsync(
+                    new ArraySegment<byte>(
+                         Encoding.ASCII.GetBytes(contents),
+                        0,
+                        contents.Length),
+                    WebSocketMessageType.Text,
+                    true,
+                    cancellationToken);
             }
             finally
             {
@@ -125,19 +119,19 @@ namespace ChromeDevTools.Host
 
         }
 
-        private void LogTrace(string message, params object[] args)
+        protected virtual void LogTrace(string message, params object[] args)
         {
        
         }
 
-        private void LogError(string message, params object[] args)
+        protected virtual void LogError(string message, params object[] args)
         {
        
         }
 
 
         #region IDisposable Support
-        private bool m_isDisposed = false;
+        private bool m_isDisposed;
         private WebSocket m_sessionSocket;
 
         private void Dispose(bool disposing)
@@ -149,10 +143,8 @@ namespace ChromeDevTools.Host
 
                     m_eventTypeMap.Clear();
 
-                    if (m_sessionSocket != null)
-                    {
-                        m_sessionSocket = null;
-                    }
+                    m_sessionSocket = null;
+                    
                 }
 
                 m_isDisposed = true;
@@ -219,12 +211,12 @@ namespace ChromeDevTools.Host
                 // we got an execution, let's send the answer
                 var requestResponse = JsonConvert.SerializeObject(result);
 
-                await m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(requestResponse),
-                        offset: 0,
-                        count: requestResponse.Length),
-                    messageType: WebSocketMessageType.Text,
-                    endOfMessage: true,
-                    cancellationToken: CancellationToken.None);
+                await m_sessionSocket.SendAsync(new ArraySegment<byte>(Encoding.ASCII.GetBytes(requestResponse),
+                        0,
+                        requestResponse.Length),
+                    WebSocketMessageType.Text,
+                    true,
+                    CancellationToken.None);
 
                 // wait for the next request
                 request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);

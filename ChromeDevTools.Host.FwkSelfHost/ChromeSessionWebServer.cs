@@ -1,15 +1,15 @@
-﻿using System.Linq;
-
-namespace ChromeDevTools.Host.FwkSelfHost
+﻿namespace ChromeDevTools.Host.FwkSelfHost
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using ChromeDevTools.Host.Handlers;
     using Newtonsoft.Json;
 
-    public class ChromeSessionWebServer
+    public static class ChromeSessionWebServer
     {
         private static readonly List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
 
@@ -21,7 +21,7 @@ namespace ChromeDevTools.Host.FwkSelfHost
             string description,
             string faviconUrl,
             Guid id, CancellationToken cancellationToken,
-            params IRuntimeHandle[] handlers)
+            params IRuntimeHandler[] handlers)
         {
             try
             {
@@ -40,73 +40,73 @@ namespace ChromeDevTools.Host.FwkSelfHost
                         switch (context.Request.Url.AbsolutePath)
                         {
                             case "/chrome":
-                            {
-                                if (context.Request.IsWebSocketRequest)
                                 {
-                                    try
+                                    if (context.Request.IsWebSocketRequest)
                                     {
-                                        _ = Task.Run(async () =>
+                                        try
                                         {
-                                            var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                            var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
-                                            try
+                                            _ = Task.Run(async () =>
                                             {
-                                                sessions.Add(session);
-                                                await session.Process(cancellationToken);
-                                            }
-                                            finally
-                                            {
-                                                sessions.Remove(session);
-                                            }
-                                        });
+                                                var webSocketContext = await context.AcceptWebSocketAsync(null);
+                                                var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
+                                                try
+                                                {
+                                                    sessions.Add(session);
+                                                    await session.Process(cancellationToken);
+                                                }
+                                                finally
+                                                {
+                                                    sessions.Remove(session);
+                                                }
+                                            });
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Console.Error.WriteLine(e);
+                                        }
                                     }
-                                    catch (Exception e)
+                                    else
                                     {
-                                        Console.Error.WriteLine(e.ToString());
+                                        context.Response.StatusCode = 400;
                                     }
-                                }
-                                else
-                                {
-                                    context.Response.StatusCode = 400;
-                                }
 
-                                break;
-                            }
+                                    break;
+                                }
 
                             case "/json/version":
-                            {
-                                var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
-                                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                                // Get a response stream and write the response to it.
-                                context.Response.ContentLength64 = buffer.Length;
-                                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                context.Response.OutputStream.Close();
-                                break;
-                            }
+                                {
+                                    var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
+                                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                    // Get a response stream and write the response to it.
+                                    context.Response.ContentLength64 = buffer.Length;
+                                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                    context.Response.OutputStream.Close();
+                                    break;
+                                }
 
                             case "/json":
                             case "/json/list":
-                            {
-                                var responseObj = new[]
                                 {
+                                    var responseObj = new[]
+                                    {
                                     ChromeSessionInstanceDescription.CreateFrom(
                                         $"{listeningOnUri.Host}:{listeningOnUri.Port}",
                                         title,
                                         description,
                                         faviconUrl,
-                                        Guid.NewGuid()
+                                        id
                                     )
                                 };
 
-                                var responseString = JsonConvert.SerializeObject(responseObj);
-                                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                                context.Response.ContentType = "application/json; charset=UTF-8";
-                                // Get a response stream and write the response to it.
-                                context.Response.ContentLength64 = buffer.Length;
-                                context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                context.Response.OutputStream.Close();
-                                break;
-                            }
+                                    var responseString = JsonConvert.SerializeObject(responseObj);
+                                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                    context.Response.ContentType = "application/json; charset=UTF-8";
+                                    // Get a response stream and write the response to it.
+                                    context.Response.ContentLength64 = buffer.Length;
+                                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                    context.Response.OutputStream.Close();
+                                    break;
+                                }
                         }
                     }
                 }

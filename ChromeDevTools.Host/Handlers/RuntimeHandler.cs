@@ -1,22 +1,16 @@
-using System.Diagnostics;
-
-namespace ChromeDevTools.Host
+namespace ChromeDevTools.Host.Handlers
 {
     using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;
     using System;
+    using System.Diagnostics;
     using System.Threading.Tasks;
 
-    public interface IRuntimeHandle
-    {
-        void Register(ChromeProtocolSession session);
-    }
-
-    public class RuntimeHandle : IRuntimeHandle
+    public class RuntimeHandler : IRuntimeHandler
     {
         private ChromeProtocolSession session;
 
-        public RuntimeHandle()
+        public RuntimeHandler()
         {
             this.IsEnable = false;
         }

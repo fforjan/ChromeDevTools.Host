@@ -1,8 +1,8 @@
-using System;
-using Newtonsoft.Json;
-
 namespace ChromeDevTools.Host
 {
+    using System;
+    using Newtonsoft.Json;
+
     public class ChromeSessionProtocolVersion {
 
         [JsonProperty]

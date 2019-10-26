@@ -1,16 +1,16 @@
-﻿using System;
-using System.Net.WebSockets;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading;
-using Newtonsoft.Json;
-
-namespace ChromeDevTools.Host.AspNetCore
+﻿namespace ChromeDevTools.Host.AspNetCore
 {
+    using System;
+    using System.Net.WebSockets;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Hosting.Server.Features;
+    using System.Linq;
+    using System.Collections.Generic;
+    using System.Threading;
+    using Newtonsoft.Json;
+    using ChromeDevTools.Host.Handlers;
 
     public static class ChromeHostExtension
     {
@@ -82,7 +82,7 @@ namespace ChromeDevTools.Host.AspNetCore
 
         private static async Task Chrome(WebSocket webSocket)
         {
-            var session = new ChromeProtocolSession(webSocket, new RuntimeHandle(), new DebuggerHandler(), new ProfilerHandler());
+            var session = new ChromeProtocolSession(webSocket, new RuntimeHandler(), new DebuggerHandler(), new ProfilerHandler());
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);
@@ -92,7 +92,7 @@ namespace ChromeDevTools.Host.AspNetCore
         }
 
 
-        private static List<ChromeProtocolSession> chromeSessions = new List<ChromeProtocolSession>();
+        private static readonly List<ChromeProtocolSession> chromeSessions = new List<ChromeProtocolSession>();
 
         public static IReadOnlyList<ChromeProtocolSession> ChromeSessions { get => chromeSessions; }
     }    

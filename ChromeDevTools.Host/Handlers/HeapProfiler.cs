@@ -1,9 +1,4 @@
-
-
-using System.Collections.Generic;
-using System.IO;
-
-namespace ChromeDevTools.Host
+namespace ChromeDevTools.Host.Handlers
 {
     using System.Threading.Tasks;
     using System;
@@ -11,8 +6,9 @@ namespace ChromeDevTools.Host
     using ChromeDevTools.Host.Runtime.HeapProfiler;
 
     using ChromeDevTools.Host.Runtime;
+    using System.Collections.Generic;
 
-    public class HeapProfilerHandler : IRuntimeHandle
+    public class HeapProfilerHandler : IRuntimeHandler
     {
         private const int ChunkSize = 10000;
 
@@ -36,7 +32,7 @@ namespace ChromeDevTools.Host
             var reportProgress = comd.ReportProgress.HasValue && comd.ReportProgress.Value;
 
             var currentChunk = 0;
-            List<string> chunks = new List<string>();
+            var chunks = new List<string>();
 
             // this should be reimplemented with Span of text ??
             var snapshot = GetHeapSnapshot();
