@@ -27,7 +27,9 @@ namespace ChromeDevTools.Host
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
 
-        public IReadOnlyDictionary<Type, IRuntimeHandle> RuntimeHandlers;
+        private readonly IDictionary<Type, object> serviceMapping = new Dictionary<Type, object>();
+
+        public IReadOnlyCollection<IRuntimeHandle> RuntimeHandlers;
         
         /// <summary>
         /// Gets or sets the number of milliseconds to wait for a command to complete. Default is 5 seconds.
@@ -47,7 +49,10 @@ namespace ChromeDevTools.Host
             CommandTimeout = 5000;
             m_sessionSocket = webSocket;
 
-            this.RuntimeHandlers = handlers.ToDictionary(_ => _.GetType());
+            var dictionary = new Dictionary<Type, IRuntimeHandle>();
+
+            RuntimeHandlers = handlers;
+
             foreach (var handler in handlers)
             {
                 handler.Register(this);
@@ -235,12 +240,13 @@ namespace ChromeDevTools.Host
 
         public object GetService(Type serviceType)
         {
-            if (this.RuntimeHandlers.TryGetValue(serviceType, out var runtimeHandle))
+            if (!this.serviceMapping.ContainsKey(serviceType))
             {
-                return runtimeHandle;
+                this.serviceMapping.Add(serviceType,
+                    RuntimeHandlers.FirstOrDefault(_ => serviceType.IsInstanceOfType(_)));
             }
 
-            return null;
+            return this.serviceMapping[serviceType];
         }
     }
 }
