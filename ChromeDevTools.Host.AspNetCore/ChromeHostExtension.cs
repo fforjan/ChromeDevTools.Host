@@ -3,8 +3,6 @@ using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Linq;
 using System.Collections.Generic;
@@ -42,15 +40,19 @@ namespace ChromeDevTools.Host.AspNetCore
                         }
 
                     case "/json/version":
+                    {
+                        var responseObj = ChromeSessionProtocolVersion.CreateFrom("AspNetCore", typeof(IApplicationBuilder).Assembly.GetName().Version);
+
+                        var response = JsonConvert.SerializeObject(responseObj);
                         context.Response.ContentType = "application/json; charset=UTF-8";
-                        await context.Response.WriteAsync(
-                        @"{  
-                                ""Browser"": ""node.js/v10.14.2"",
-                                ""Protocol-Version"": ""1.3""
-                           }");
+                        context.Response.Headers.Add("Content-Length", response.Length.ToString());
+
+                        await context.Response.WriteAsync(response);
                         break;
+                    }
                     case "/json":
                     case "/json/list":
+                    {
                         var responseObj = new[]
                         {
                             ChromeSessionInstanceDescription.CreateFrom(
@@ -68,6 +70,7 @@ namespace ChromeDevTools.Host.AspNetCore
 
                         await context.Response.WriteAsync(response);
                         break;
+                    }
                     default:
                         await next();
                         break;
@@ -79,7 +82,7 @@ namespace ChromeDevTools.Host.AspNetCore
 
         private static async Task Chrome(WebSocket webSocket)
         {
-            var session = new ChromeProtocolSession(webSocket, new IRuntimeHandle[] { new RuntimeHandle(), new DebuggerHandler(), new ProfilerHandler()  });
+            var session = new ChromeProtocolSession(webSocket, new RuntimeHandle(), new DebuggerHandler(), new ProfilerHandler());
             chromeSessions.Add(session);
 
             await session.Process(CancellationToken.None);

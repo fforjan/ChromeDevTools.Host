@@ -17,6 +17,7 @@ namespace ChromeDevTools.Host.FwkSelfHost
 
         public static async Task Start(string listeningAddress, 
             string title,
+            Version version,
             string description,
             string faviconUrl,
             Guid id, CancellationToken cancellationToken,
@@ -74,13 +75,8 @@ namespace ChromeDevTools.Host.FwkSelfHost
 
                             case "/json/version":
                             {
-                                var responseString = @"{  
-                                ""Browser"": ""node.js/v10.14.2"",
-                                ""Protocol-Version"": ""1.3""
-                           }";
-
+                                var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
                                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                                context.Response.ContentType = "application/json; charset=UTF-8";
                                 // Get a response stream and write the response to it.
                                 context.Response.ContentLength64 = buffer.Length;
                                 context.Response.OutputStream.Write(buffer, 0, buffer.Length);
