@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace ChromeDevTools.Host
 {
     using ChromeDevTools.Host.Runtime;
@@ -12,16 +14,18 @@ namespace ChromeDevTools.Host
 
     public class RuntimeHandle : IRuntimeHandle
     {
-        private readonly ChromeProtocolSession session;
+        private ChromeProtocolSession session;
 
         public RuntimeHandle()
         {
             this.IsEnable = false;
         }
 
-        public void Register(ChromeProtocolSession session) 
-        { 
+        public void Register(ChromeProtocolSession session)
+        {
+            this.session = session;
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
+            session.RegisterCommandHandler<GetHeapUsageCommand>(GetHeapUsageCommand);
         }
 
         public bool IsEnable { get; private set; }
@@ -47,6 +51,15 @@ namespace ChromeDevTools.Host
             }
 
             return new EnableCommandResponse();
+        }
+
+        public Task<ICommandResponse<GetHeapUsageCommand>> GetHeapUsageCommand(GetHeapUsageCommand command)
+        {
+            return Task.FromResult<ICommandResponse<GetHeapUsageCommand>>(new GetHeapUsageCommandResponse
+            {
+                TotalSize = Process.GetCurrentProcess().PrivateMemorySize64,
+                UsedSize = GC.GetTotalMemory(false)
+            });
         }
 
         public Task Log(string logEntry)

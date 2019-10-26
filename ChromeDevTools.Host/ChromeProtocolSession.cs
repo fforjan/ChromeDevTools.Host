@@ -22,6 +22,8 @@ namespace ChromeDevTools.Host
     ///</summary>
     public class ChromeProtocolSession : IDisposable, IServiceProvider
     {
+        static SemaphoreSlim sendLocker = new SemaphoreSlim(1, 1);
+
         private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
         private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
 
@@ -46,6 +48,10 @@ namespace ChromeDevTools.Host
             m_sessionSocket = webSocket;
 
             this.RuntimeHandlers = handlers.ToDictionary(_ => _.GetType());
+            foreach (var handler in handlers)
+            {
+                handler.Register(this);
+            }
         }
 
         /// <summary>
@@ -59,14 +65,17 @@ namespace ChromeDevTools.Host
         public async Task SendEvent<TEvent>(TEvent @event, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
             where TEvent : IEvent
         {
-            if (@event == null)
-                throw new ArgumentNullException(nameof(@event));
+           
+                if (@event == null)
+                    throw new ArgumentNullException(nameof(@event));
 
 
-            if (EventTypeMap.TryGetMethodNameForType<TEvent>(out var eventName))
-            {
-                await SendEvent(eventName, JToken.FromObject(@event), cancellationToken, millisecondsTimeout, throwExceptionIfResponseNotReceived);
-            }
+                if (EventTypeMap.TryGetMethodNameForType<TEvent>(out var eventName))
+                {
+                    await SendEvent(eventName, JToken.FromObject(@event), cancellationToken, millisecondsTimeout,
+                        throwExceptionIfResponseNotReceived);
+                }
+          
         }
 
         /// <summary>
@@ -78,7 +87,7 @@ namespace ChromeDevTools.Host
         /// <param name="millisecondsTimeout"></param>
         /// <param name="throwExceptionIfResponseNotReceived"></param>
         /// <returns></returns>
-        public Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
+        public async Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default, int? millisecondsTimeout = null, bool throwExceptionIfResponseNotReceived = true)
         {
             var message = new
             {
@@ -93,12 +102,21 @@ namespace ChromeDevTools.Host
 
             var contents = JsonConvert.SerializeObject(message);
 
-            return m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
-                    offset: 0,
-                    count: contents.Length),
-                messageType: WebSocketMessageType.Text,
-                endOfMessage: true,
-                cancellationToken: CancellationToken.None);
+            await sendLocker.WaitAsync();
+            try
+            {
+
+                 await m_sessionSocket.SendAsync(buffer: new ArraySegment<byte>(array: Encoding.ASCII.GetBytes(contents),
+                        offset: 0,
+                        count: contents.Length),
+                    messageType: WebSocketMessageType.Text,
+                    endOfMessage: true,
+                    cancellationToken: CancellationToken.None);
+            }
+            finally
+            {
+                sendLocker.Release();
+            }
 
         }
 
@@ -163,8 +181,15 @@ namespace ChromeDevTools.Host
                     messageObject.TryGetValue("params", out JToken methodParams);
                     if (m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation))
                     {
-                        methodResult = await methodImplementation(methodParams);
-                        errorMessage = null;
+                        try
+                        {
+                            methodResult = await methodImplementation(methodParams);
+                            errorMessage = null;
+                        }
+                        catch (Exception e)
+                        {
+                            errorMessage = e.ToString();
+                        }
                     }
                 }
 

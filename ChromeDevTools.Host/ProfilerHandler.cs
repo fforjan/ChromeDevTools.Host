@@ -1,3 +1,5 @@
+using System;
+
 namespace ChromeDevTools.Host
 {
     using System.Threading.Tasks;
@@ -14,7 +16,7 @@ namespace ChromeDevTools.Host
             return Task.FromResult<ICommandResponse<EnableCommand>>(new EnableCommandResponse());
         }
 
-        public void Register(ChromeProtocolSession session)
+        public virtual void Register(ChromeProtocolSession session)
         {
             this.session = session;
 

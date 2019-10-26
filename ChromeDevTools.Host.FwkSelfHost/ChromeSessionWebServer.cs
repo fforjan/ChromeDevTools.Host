@@ -48,9 +48,15 @@ namespace ChromeDevTools.Host.FwkSelfHost
                                         {
                                             var webSocketContext = await context.AcceptWebSocketAsync(null);
                                             var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
-                                            sessions.Add(session);
-                                            await session.Process(cancellationToken);
-                                            sessions.Remove(session);
+                                            try
+                                            {
+                                                sessions.Add(session);
+                                                await session.Process(cancellationToken);
+                                            }
+                                            finally
+                                            {
+                                                sessions.Remove(session);
+                                            }
                                         });
                                     }
                                     catch (Exception e)

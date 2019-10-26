@@ -45,9 +45,15 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Resources\sample.heapsnapshot" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj">
@@ -58,6 +64,15 @@
       <Project>{F0C70AA3-66F5-4E36-AD98-3406156D2B88}</Project>
       <Name>ChromeDevTools.Host</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\HeadSnapshot.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
