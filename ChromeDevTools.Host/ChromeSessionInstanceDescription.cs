@@ -3,8 +3,12 @@ namespace ChromeDevTools.Host
     using Newtonsoft.Json;
     using System;
 
+
     public class ChromeSessionInstanceDescription
     {
+        public const string PageType = "page";
+        public const string NodeType = "node";
+
         [JsonProperty("description")]
         public string Description { get; set; }
 
@@ -38,7 +42,8 @@ namespace ChromeDevTools.Host
             string title,
             string description,
             string faviconUrl,
-            Guid id
+            Guid id,
+            string type = "node"
         )
         {
             return new ChromeSessionInstanceDescription
@@ -52,7 +57,7 @@ namespace ChromeDevTools.Host
                     faviconUrl,
                 Id = id.ToString(),
                 Title = title,
-                Type = "node",
+                Type = NodeType,
                 Url = "file://",
                 WebSocketDebuggerUrl = $"ws://{hostIp}/chrome"
             };
