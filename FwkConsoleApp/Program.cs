@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,48 +37,6 @@ namespace FwkConsoleApp
                 }
 
                 i++;
-            }
-        }
-    }
-
-    public class MyHeapProfilerHandler : HeapProfilerHandler
-    {
-        private  const int ChunkSize = 10000;
-        public override  async Task<ICommandResponse<TakeHeapSnapshotCommand>> TakeHeapSnapshot(TakeHeapSnapshotCommand comd)
-        {
-            await SendSnapshot(comd.ReportProgress.HasValue && comd.ReportProgress.Value);
-            return new TakeHeapSnapshotCommandResponse();
-        }
-
-        private async Task SendSnapshot(bool reportProgress)
-        {
-            var snapshot = File.ReadAllText("output.heapsnapshot");
-            snapshot += "\n\r";
-
-            var currentChunk = 0;
-
-            List<string> chunks = new List<string>();
-
-            while (snapshot.Length > ChunkSize)
-            {
-                chunks.Add(snapshot.Substring(0, ChunkSize));
-                if(reportProgress)
-                {
-                    await this.ReportHeapSnapshotProgress(currentChunk += ChunkSize, snapshot.Length);
-
-                }
-                snapshot = snapshot.Substring(ChunkSize);
-            }
-            chunks.Add(snapshot);
-
-            if (reportProgress)
-            {
-                await this.ReportHeapSnapshotProgress(snapshot.Length, snapshot.Length);
-            }
-
-            foreach (var chunk in chunks)
-            {
-                await this.PublishHeapChunk(chunk);
             }
         }
     }
