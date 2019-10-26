@@ -1,5 +1,7 @@
 
 
+using System.IO;
+
 namespace ChromeDevTools.Host
 {
     using System.Threading.Tasks;
@@ -34,6 +36,7 @@ namespace ChromeDevTools.Host
 
         protected async Task PublishHeapChunk(string chunk)
         {
+            File.AppendAllText("Chunk.heapsnapshot", chunk);
             await session.SendEvent(new AddHeapSnapshotChunkEvent
             {
                 Chunk = chunk
@@ -45,8 +48,18 @@ namespace ChromeDevTools.Host
             {
                 Total = totalChunk,
                 Done = currentChunk,
-                Finished =  totalChunk == currentChunk
             });
+
+            if (currentChunk == totalChunk)
+            {
+                await session.SendEvent(new ReportHeapSnapshotProgressEvent
+                {
+                    Total = totalChunk,
+                    Done = currentChunk,
+                    Finished = true
+                });
+            }
+
         }
     }
 }
