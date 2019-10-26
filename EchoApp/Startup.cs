@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ChromeDevTools.Host;
 using ChromeDevTools.Host.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -84,7 +85,7 @@ namespace EchoApp
 #region Echo
         private async Task Echo(HttpContext context, WebSocket webSocket)
         {
-             await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => _.RuntimeHandle.Log("New Connection")));
+             await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => Extensions.GetService<RuntimeHandle>(_).Log("New Connection")));
 
             this.communicationSession.Add(webSocket);
             var buffer = new byte[1024 * 4];
@@ -98,14 +99,14 @@ namespace EchoApp
 
                 if(result.MessageType == WebSocketMessageType.Text) {
                     var message = Encoding.ASCII.GetString(rawMessage);
-                    await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => _.RuntimeHandle.Log($"Received message: " + message)));
+                    await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => Extensions.GetService<RuntimeHandle>(_).Log($"Received message: " + message)));
                 }
 
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
             this.communicationSession.Remove(webSocket);
 
-            await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => _.RuntimeHandle.Log("Closed Connection")));
+            await Task.WhenAll(ChromeHostExtension.ChromeSessions.Select(_ => Extensions.GetService<RuntimeHandle>(_).Log("Closed Connection")));
             
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
