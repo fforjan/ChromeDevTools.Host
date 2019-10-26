@@ -17,7 +17,9 @@ namespace FwkConsoleApp
     {
         static async Task Main()
         {
-            var server = ChromeSessionWebServer.Start("http://127.0.0.1:12345/",
+            var sessions = new ChromeProtocolSessions();
+
+            var server = ChromeSessionWebServer.Start(sessions, "http://127.0.0.1:12345/",
                 "sample application",
                 Assembly.GetExecutingAssembly().GetName().Version, 
                 "sample command line application",
@@ -33,10 +35,10 @@ namespace FwkConsoleApp
 
                 switch (i % 4)
                 {
-                    case 0: await ChromeSessionWebServer.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;
-                    case 1: await ChromeSessionWebServer.ForEach(_ => _.GetService<RuntimeHandler>().Warning($"Ticks : <warning> {i}")); break;
-                    case 2: await ChromeSessionWebServer.ForEach(_ => _.GetService<RuntimeHandler>().Error($"Ticks : <error> {i}"));break;
-                    case 3: await ChromeSessionWebServer.ForEach(_ => _.GetService<RuntimeHandler>().Debug($"Ticks : <debug> {i}")); break;
+                    case 0: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;
+                    case 1: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Warning($"Ticks : <warning> {i}")); break;
+                    case 2: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Error($"Ticks : <error> {i}"));break;
+                    case 3: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Debug($"Ticks : <debug> {i}")); break;
                 }
 
                 i++;

@@ -13,7 +13,6 @@ namespace ChromeDevTools.Host
     using System.Threading;
     using System.Threading.Tasks;
 
-
     /// <summary>
     /// Represents a websocket connection to a running chrome instance that can be used to send commands and recieve events.
     ///</summary>
@@ -78,6 +77,11 @@ namespace ChromeDevTools.Host
         /// <returns></returns>
         public async Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default)
         {
+            if(m_sessionSocket.State == WebSocketState.Aborted)
+            {
+                await Task.CompletedTask;
+            }
+
             var message = new
             {
                 method = eventName,
@@ -102,6 +106,10 @@ namespace ChromeDevTools.Host
                     WebSocketMessageType.Text,
                     true,
                     cancellationToken);
+            }
+            catch(WebSocketException e)
+            {
+                LogTrace($"Exceptionw while sending event: {e}");
             }
             finally
             {

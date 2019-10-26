@@ -83,17 +83,13 @@
         private static async Task Chrome(WebSocket webSocket)
         {
             var session = new ChromeProtocolSession(webSocket, new RuntimeHandler(), new DebuggerHandler(), new ProfilerHandler());
-            chromeSessions.Add(session);
-
-            await session.Process(CancellationToken.None);
-
-            chromeSessions.Remove(session);
+            using (Sessions.Register(session))
+            {
+                await session.Process(CancellationToken.None);
+            }
 
         }
 
-
-        private static readonly List<ChromeProtocolSession> chromeSessions = new List<ChromeProtocolSession>();
-
-        public static IReadOnlyList<ChromeProtocolSession> ChromeSessions { get => chromeSessions; }
+        public static ChromeProtocolSessions Sessions = new ChromeProtocolSessions();
     }    
 }

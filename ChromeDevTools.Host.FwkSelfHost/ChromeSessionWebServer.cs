@@ -9,13 +9,12 @@
     using ChromeDevTools.Host.Handlers;
     using Newtonsoft.Json;
 
+
+
     public static class ChromeSessionWebServer
     {
-        private static readonly List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
-
-        public static IReadOnlyCollection<ChromeProtocolSession> Sessions { get; } = sessions;
-
-        public static async Task Start(string listeningAddress, 
+       
+        public static async Task Start(ChromeProtocolSessions sessions, string listeningAddress, 
             string title,
             Version version,
             string description,
@@ -49,14 +48,9 @@
                                             {
                                                 var webSocketContext = await context.AcceptWebSocketAsync(null);
                                                 var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
-                                                try
+                                                using (sessions.Register(session))
                                                 {
-                                                    sessions.Add(session);
                                                     await session.Process(cancellationToken);
-                                                }
-                                                finally
-                                                {
-                                                    sessions.Remove(session);
                                                 }
                                             });
                                         }
@@ -113,13 +107,8 @@
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e.ToString());
+                Console.Error.WriteLine(e);
             }
-        }
-
-        public static Task ForEach(Func<ChromeProtocolSession, Task> chromeSessionAction)
-        {
-            return Task.WhenAll(sessions.Select(chromeSessionAction));
-        }
+        }  
     }
 }

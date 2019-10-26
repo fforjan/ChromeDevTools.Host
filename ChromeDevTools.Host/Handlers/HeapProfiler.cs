@@ -34,7 +34,7 @@ namespace ChromeDevTools.Host.Handlers
             this.session = session;
 
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
-            session.RegisterCommandHandler<DisableCommand>(EnableCommand);
+            session.RegisterCommandHandler<DisableCommand>(DisableCommand);
             session.RegisterCommandHandler<TakeHeapSnapshotCommand>(TakeHeapSnapshot);
         }
 

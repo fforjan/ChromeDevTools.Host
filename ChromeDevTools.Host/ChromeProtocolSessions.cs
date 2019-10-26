@@ -11,7 +11,7 @@
 
         private List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
 
-        public IDisposable Add(ChromeProtocolSession session)
+        public IDisposable Register(ChromeProtocolSession session)
         {
             lock (locker)
             {
