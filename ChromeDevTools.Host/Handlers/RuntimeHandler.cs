@@ -10,19 +10,18 @@ namespace ChromeDevTools.Host.Handlers
     {
         private ChromeProtocolSession session;
 
-        public RuntimeHandler()
-        {
-            this.IsEnable = false;
-        }
-
         public void Register(ChromeProtocolSession session)
         {
+            this.IsEnable = false;
+
+
             this.session = session;
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
+            session.RegisterCommandHandler<DisableCommand>(DisableCommand);
             session.RegisterCommandHandler<GetHeapUsageCommand>(GetHeapUsageCommand);
         }
 
-        public bool IsEnable { get; private set; }
+        public virtual bool IsEnable { get; protected set; }
 
         public async Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
@@ -47,13 +46,26 @@ namespace ChromeDevTools.Host.Handlers
             return new EnableCommandResponse();
         }
 
+        public Task<ICommandResponse<DisableCommand>> DisableCommand(DisableCommand command)
+        {
+            this.IsEnable = false;
+            return Task.FromResult<ICommandResponse<DisableCommand>>(new DisableCommandResponse());
+        }
+
         public Task<ICommandResponse<GetHeapUsageCommand>> GetHeapUsageCommand(GetHeapUsageCommand command)
         {
+            var usage = GetHeapUsage();
+
             return Task.FromResult<ICommandResponse<GetHeapUsageCommand>>(new GetHeapUsageCommandResponse
             {
-                TotalSize = Process.GetCurrentProcess().PrivateMemorySize64,
-                UsedSize = GC.GetTotalMemory(false)
+                TotalSize = usage.TotalSize,
+                UsedSize = usage.UsedSize
             });
+        }
+
+        protected virtual (double TotalSize, double UsedSize) GetHeapUsage()
+        {
+            return (Process.GetCurrentProcess().PrivateMemorySize64, GC.GetTotalMemory(false));
         }
 
         public Task Log(string logEntry)

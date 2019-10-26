@@ -31,21 +31,13 @@ namespace ChromeDevTools.Host
 
         public IReadOnlyCollection<IRuntimeHandler> RuntimeHandlers;
         
-        /// <summary>
-        /// Gets or sets the number of milliseconds to wait for a command to complete. Default is 5 seconds.
-        /// </summary>
-        public int CommandTimeout
-        {
-            get;
-            set;
-        }
+       
 
         /// <summary>
         /// Creates a new ChromeSession to the specified WS endpoint with the specified logger implementation.
         /// </summary>
         public ChromeProtocolSession(WebSocket webSocket, params IRuntimeHandler[] handlers)
-        {
-            CommandTimeout = 5000;
+        {  
             m_sessionSocket = webSocket;
 
             RuntimeHandlers = handlers;
@@ -83,8 +75,6 @@ namespace ChromeDevTools.Host
         /// <param name="eventName"></param>
         /// <param name="params"></param>
         /// <param name="cancellationToken"></param>
-        /// 
-        /// 
         /// <returns></returns>
         public async Task SendEvent(string eventName, JToken @params, CancellationToken cancellationToken = default)
         {
@@ -99,10 +89,11 @@ namespace ChromeDevTools.Host
 
             var contents = JsonConvert.SerializeObject(message);
 
+            // only one event can be send at a time,
+            // let's use the locker
             await sendLocker.WaitAsync();
             try
             {
-
                  await m_sessionSocket.SendAsync(
                     new ArraySegment<byte>(
                          Encoding.ASCII.GetBytes(contents),
@@ -119,12 +110,12 @@ namespace ChromeDevTools.Host
 
         }
 
-        protected virtual void LogTrace(string message, params object[] args)
+        protected virtual void LogTrace(string message)
         {
        
         }
 
-        protected virtual void LogError(string message, params object[] args)
+        protected virtual void LogError(string message)
         {
        
         }
@@ -134,7 +125,7 @@ namespace ChromeDevTools.Host
         private bool m_isDisposed;
         private WebSocket m_sessionSocket;
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!m_isDisposed)
             {
@@ -162,11 +153,12 @@ namespace ChromeDevTools.Host
 
         public async Task Process(CancellationToken cancellationToken)
         {
+            // we're using a 4 buffer
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
             while (!request.CloseStatus.HasValue)
             {
-                var message = Encoding.ASCII.GetString(buffer.Take(request.Count).ToArray());
+                var message = Encoding.ASCII.GetString(buffer, 0, request.Count);
                 var messageObject = JObject.Parse(message);
 
                 JToken id = messageObject["id"];
@@ -191,6 +183,9 @@ namespace ChromeDevTools.Host
                 }
 
                 object result;
+
+                // if error message is null,
+                // then execution generated a result.
                 if (errorMessage == null)
                 {
                     result = new
@@ -208,7 +203,7 @@ namespace ChromeDevTools.Host
                     };
                 }
 
-                // we got an execution, let's send the answer
+                // we got our result, let's send the answer
                 var requestResponse = JsonConvert.SerializeObject(result);
 
                 await m_sessionSocket.SendAsync(new ArraySegment<byte>(Encoding.ASCII.GetBytes(requestResponse),
@@ -224,14 +219,34 @@ namespace ChromeDevTools.Host
             await m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
         }
 
+
+        /// <summary>
+        /// Register a command handler.
+        /// Only one can exists
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="handler"></param>
         public void RegisterCommandHandler<T>(Func<T, Task<ICommandResponse<T>>> handler)
         where T : class, ICommand
         {
-            m_commandHandlers[((T)Activator.CreateInstance(typeof(T))).CommandName] = async _ => await handler(_?.ToObject<T>());
+            var commandName = ((T)Activator.CreateInstance(typeof(T))).CommandName;
+            if (m_commandHandlers.ContainsKey(commandName))
+            {
+                throw new ArgumentException("A handler already exists");
+            }
+
+            m_commandHandlers[commandName] = async _ => await handler(_?.ToObject<T>());
         }
 
+        /// <summary>
+        /// Retrieve a service (mainly anything implementing a <see cref="IRuntimeHandler"/> interface given
+        /// at the <see cref="ChromeProtocolSession"/>
+        /// </summary>
+        /// <param name="serviceType"></param>
+        /// <returns>the service install or null if not found</returns>
         public object GetService(Type serviceType)
         {
+            // if service was not found, look for it.
             if (!this.serviceMapping.ContainsKey(serviceType))
             {
                 this.serviceMapping.Add(serviceType,
