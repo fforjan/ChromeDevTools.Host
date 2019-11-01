@@ -22,7 +22,7 @@ namespace ChromeDevTools.Host.AspNetCore
             this.chromeSessionProvider = chromeSessionProvider;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task Invoke(HttpContext context)
         {
                 var serveruri = context.Request.Host;
                 string path = context.Request.Path;
@@ -46,7 +46,7 @@ namespace ChromeDevTools.Host.AspNetCore
                     {
                         case "/json/version":
                             {
-                                var responseObj = ChromeSessionProtocolVersion.CreateFrom("AspNetCore", typeof(IApplicationBuilder).Assembly.GetName().Version);
+                                var responseObj = chromeSessionProvider.GetProtocolVersion();
 
                                 var response = JsonConvert.SerializeObject(responseObj);
 
