@@ -1,10 +1,10 @@
 ﻿namespace ChromeDevTools.Host.FwkSelfHost
 {
     using System;
+    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using ChromeDevTools.Host.Handlers;
     using Newtonsoft.Json;
 
 
@@ -13,12 +13,7 @@
     {
 
         public static async Task Start(ChromeProtocolSessions sessions, string listeningAddress,
-            string title,
-            Version version,
-            string description,
-            string faviconUrl,
-            Guid id, CancellationToken cancellationToken,
-            params IRuntimeHandler[] handlers)
+            IChromeSessionProvider sessionProvider, CancellationToken cancellationToken)
         {
             try
             {
@@ -42,7 +37,7 @@
                                 _ = Task.Run(async () =>
                                 {
                                     var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                    var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
+                                    var session = sessionProvider.CreateSession(webSocketContext.WebSocket, path.Split('/').Last());
                                     using (sessions.Register(session))
                                     {
                                         await session.Process(cancellationToken);
@@ -60,7 +55,7 @@
                             {
                                 case "/json/version":
                                     {
-                                        var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
+                                        var responseString = JsonConvert.SerializeObject(sessionProvider.GetProtocolVersion());
                                         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                                         // Get a response stream and write the response to it.
                                         context.Response.ContentLength64 = buffer.Length;
@@ -72,18 +67,7 @@
                                 case "/json":
                                 case "/json/list":
                                     {
-                                        var responseObj = new[]
-                                        {
-                                    ChromeSessionInstanceDescription.CreateFrom(
-                                        $"{listeningOnUri.Host}:{listeningOnUri.Port}",
-                                        title,
-                                        description,
-                                        faviconUrl,
-                                        id
-                                    )
-                                };
-
-                                        var responseString = JsonConvert.SerializeObject(responseObj);
+                                        var responseString = JsonConvert.SerializeObject(sessionProvider.GetSessionInstanceDescriptions(listeningOnUri.Host, listeningOnUri.Port));
                                         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                                         context.Response.ContentType = "application/json; charset=UTF-8";
                                         // Get a response stream and write the response to it.

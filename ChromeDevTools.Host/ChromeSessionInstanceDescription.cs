@@ -38,7 +38,8 @@ namespace ChromeDevTools.Host
 
 
         public static ChromeSessionInstanceDescription CreateFrom(
-            string hostIp,
+            string serverName,
+            int serverPort,
             string title,
             string description,
             string faviconUrl,
@@ -50,16 +51,16 @@ namespace ChromeDevTools.Host
             {
                 Description = description,
                 DevtoolsFrontendUrl =
-                    $"chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws={hostIp}/json/session/{id}",
+                    $"chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws={serverName}:{serverPort}/json/session/{id}",
                 DevtoolsFrontendUrlCompat =
-                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={hostIp}/json/session/{id}",
+                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={serverName}:{serverPort}/json/session/{id}",
                 FaviconUrl =
                     faviconUrl,
                 Id = id.ToString(),
                 Title = title,
                 Type = type,
                 Url = "file://",
-                WebSocketDebuggerUrl = $"ws://{hostIp}/json/session/{id}"
+                WebSocketDebuggerUrl = $"ws://{serverName}:{serverPort}/json/session/{id}"
             };
         }
     }

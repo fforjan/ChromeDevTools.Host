@@ -13,11 +13,13 @@ namespace ChromeDevTools.Host.AspNetCore
 
     public class ChromeHostMiddleware 
     {
-        private readonly RequestDelegate _next;
+        private readonly RequestDelegate next;
+        private readonly IChromeSessionProvider chromeSessionProvider;
 
-        public ChromeHostMiddleware(RequestDelegate next)
+        public ChromeHostMiddleware(RequestDelegate next, IChromeSessionProvider chromeSessionProvider)
         {
-            _next = next;
+            this.next = next;
+            this.chromeSessionProvider = chromeSessionProvider;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -29,7 +31,13 @@ namespace ChromeDevTools.Host.AspNetCore
                 {
 
                     WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                    await Session(webSocket);
+
+                    var session = chromeSessionProvider.CreateSession(webSocket, path.Split('/').Last());
+
+                    using (ChromeHostExtension.Sessions.Register(session))
+                    {
+                        await session.Process(CancellationToken.None);
+                    }
 
                 }
                 else
@@ -53,7 +61,7 @@ namespace ChromeDevTools.Host.AspNetCore
                                 var responseObj = new[]
                                 {
                             ChromeSessionInstanceDescription.CreateFrom(
-                                $"{serveruri.Host}:{serveruri.Port}",
+                                serveruri.Host, serveruri.Port.Value,
                                 "virtual instance for AspNetCore",
                                 "virtual instance",
                                 "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
@@ -69,20 +77,12 @@ namespace ChromeDevTools.Host.AspNetCore
                                 break;
                             }
                         default:
-                            await _next(context);
+                            await next(context);
                             break;
                     }
                 }
         }
 
-        private static async Task Session(WebSocket webSocket)
-        {
-            var session = new ChromeProtocolSession(webSocket, new RuntimeHandler(), new DebuggerHandler(), new ProfilerHandler());
-            using (ChromeHostExtension.Sessions.Register(session))
-            {
-                await session.Process(CancellationToken.None);
-            }
-
-        }
+      
     }
 }

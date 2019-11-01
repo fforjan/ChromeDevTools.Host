@@ -31,6 +31,8 @@
                     .AddFilter<ConsoleLoggerProvider>(category: null, level: LogLevel.Debug)
                     .AddFilter<DebugLoggerProvider>(category: null, level: LogLevel.Debug);
             });
+
+            services.AddSingleton<IChromeSessionProvider>(new SingleSessionProvider());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
