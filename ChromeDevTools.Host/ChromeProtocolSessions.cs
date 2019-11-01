@@ -11,6 +11,11 @@
 
         private List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
 
+        public IReadOnlyList<ChromeProtocolSession> Sessions
+        {
+            get => sessions;
+        }
+
         public IDisposable Register(ChromeProtocolSession session)
         {
             lock (locker)
