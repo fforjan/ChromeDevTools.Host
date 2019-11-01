@@ -1,13 +1,18 @@
 ﻿namespace FwkConsoleApp
 {
     using ChromeDevTools.Host.Handlers;
+    using ChromeDevTools.Host.Runtime.Runtime;
     using System.Linq;
 
     public class MyRuntimeHandler : RuntimeHandler
     {
-        protected override string Evaluate(string expr)
+        protected override RemoteObject Evaluate(string expr)
         {
-            return new string(expr.Reverse().ToArray());
+            return new RemoteObject
+            {
+                Type = "string",
+                Value = new string(expr.Reverse().ToArray())
+            };
         }
     }
 }
