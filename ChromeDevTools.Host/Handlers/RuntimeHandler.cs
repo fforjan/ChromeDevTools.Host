@@ -10,7 +10,7 @@ namespace ChromeDevTools.Host.Handlers
     {
         private ChromeProtocolSession session;
 
-        public void Register(ChromeProtocolSession session)
+        public virtual void Register(ChromeProtocolSession session)
         {
             this.IsEnable = false;
 

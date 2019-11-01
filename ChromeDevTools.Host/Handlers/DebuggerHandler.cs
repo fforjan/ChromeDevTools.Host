@@ -26,7 +26,7 @@ namespace ChromeDevTools.Host.Handlers
             return Task.FromResult<ICommandResponse<DisableCommand>>(new DisableCommandResponse());
         }
 
-        public void Register(ChromeProtocolSession session)
+        public virtual void Register(ChromeProtocolSession session)
         {
             this.session = session;
 
