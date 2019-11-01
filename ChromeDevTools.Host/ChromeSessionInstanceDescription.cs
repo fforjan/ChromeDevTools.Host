@@ -43,23 +43,23 @@ namespace ChromeDevTools.Host
             string description,
             string faviconUrl,
             Guid id,
-            string type = "node"
+            string type = NodeType
         )
         {
             return new ChromeSessionInstanceDescription
             {
                 Description = description,
                 DevtoolsFrontendUrl =
-                    $"chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws={hostIp}/chrome/",
+                    $"chrome-devtools://devtools/bundled/js_app.html?experiments=true&v8only=true&ws={hostIp}/json/session/{id}",
                 DevtoolsFrontendUrlCompat =
-                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={hostIp}/chrome/",
+                    $"chrome-devtools://devtools/bundled/inspector.html?experiments=true&v8only=true&ws={hostIp}/json/session/{id}",
                 FaviconUrl =
                     faviconUrl,
                 Id = id.ToString(),
                 Title = title,
-                Type = NodeType,
+                Type = type,
                 Url = "file://",
-                WebSocketDebuggerUrl = $"ws://{hostIp}/chrome"
+                WebSocketDebuggerUrl = $"ws://{hostIp}/json/session/{id}"
             };
         }
     }

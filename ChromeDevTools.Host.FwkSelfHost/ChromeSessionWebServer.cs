@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -13,8 +14,8 @@
 
     public static class ChromeSessionWebServer
     {
-       
-        public static async Task Start(ChromeProtocolSessions sessions, string listeningAddress, 
+
+        public static async Task Start(ChromeProtocolSessions sessions, string listeningAddress,
             string title,
             Version version,
             string description,
@@ -36,53 +37,46 @@
                     {
                         var context = await listener.GetContextAsync();
 
-                        switch (context.Request.Url.AbsolutePath)
+                        var path = context.Request.Url.AbsolutePath;
+                        if (path.StartsWith("/json/session/", StringComparison.InvariantCultureIgnoreCase) && context.Request.IsWebSocketRequest)
                         {
-                            case "/chrome":
+                            try
+                            {
+                                _ = Task.Run(async () =>
                                 {
-                                    if (context.Request.IsWebSocketRequest)
+                                    var webSocketContext = await context.AcceptWebSocketAsync(null);
+                                    var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
+                                    using (sessions.Register(session))
                                     {
-                                        try
-                                        {
-                                            _ = Task.Run(async () =>
-                                            {
-                                                var webSocketContext = await context.AcceptWebSocketAsync(null);
-                                                var session = new ChromeProtocolSession(webSocketContext.WebSocket, handlers);
-                                                using (sessions.Register(session))
-                                                {
-                                                    await session.Process(cancellationToken);
-                                                }
-                                            });
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Console.Error.WriteLine(e);
-                                        }
+                                        await session.Process(cancellationToken);
                                     }
-                                    else
+                                });
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Error.WriteLine(e);
+                            }
+                        }
+                        else
+                        {
+                            switch (context.Request.Url.AbsolutePath)
+                            {
+                                case "/json/version":
                                     {
-                                        context.Response.StatusCode = 400;
+                                        var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
+                                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                        // Get a response stream and write the response to it.
+                                        context.Response.ContentLength64 = buffer.Length;
+                                        context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                        context.Response.OutputStream.Close();
+                                        break;
                                     }
 
-                                    break;
-                                }
-
-                            case "/json/version":
-                                {
-                                    var responseString = JsonConvert.SerializeObject(ChromeSessionProtocolVersion.CreateFrom(title, version));
-                                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                                    // Get a response stream and write the response to it.
-                                    context.Response.ContentLength64 = buffer.Length;
-                                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                    context.Response.OutputStream.Close();
-                                    break;
-                                }
-
-                            case "/json":
-                            case "/json/list":
-                                {
-                                    var responseObj = new[]
+                                case "/json":
+                                case "/json/list":
                                     {
+                                        var responseObj = new[]
+                                        {
                                     ChromeSessionInstanceDescription.CreateFrom(
                                         $"{listeningOnUri.Host}:{listeningOnUri.Port}",
                                         title,
@@ -92,15 +86,16 @@
                                     )
                                 };
 
-                                    var responseString = JsonConvert.SerializeObject(responseObj);
-                                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                                    context.Response.ContentType = "application/json; charset=UTF-8";
-                                    // Get a response stream and write the response to it.
-                                    context.Response.ContentLength64 = buffer.Length;
-                                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-                                    context.Response.OutputStream.Close();
-                                    break;
-                                }
+                                        var responseString = JsonConvert.SerializeObject(responseObj);
+                                        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                                        context.Response.ContentType = "application/json; charset=UTF-8";
+                                        // Get a response stream and write the response to it.
+                                        context.Response.ContentLength64 = buffer.Length;
+                                        context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                                        context.Response.OutputStream.Close();
+                                        break;
+                                    }
+                            }
                         }
                     }
                 }
@@ -109,6 +104,6 @@
             {
                 Console.Error.WriteLine(e);
             }
-        }  
+        }
     }
 }

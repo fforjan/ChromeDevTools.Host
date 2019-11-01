@@ -22,39 +22,35 @@
 
             app.Use(async (context, next) =>
             {
-                switch (context.Request.Path)
+                string path = context.Request.Path;
+
+                if (path.StartsWith("/json/session", StringComparison.InvariantCultureIgnoreCase) && context.WebSockets.IsWebSocketRequest)
                 {
-                    case "/chrome":
-                        {
-                            if (context.WebSockets.IsWebSocketRequest)
-                            {
-                                WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                                await Chrome(webSocket);
-                            }
-                            else
-                            {
-                                context.Response.StatusCode = 400;
-                            }
 
-                            break;
-                        }
+                    WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    await Chrome(webSocket);
 
-                    case "/json/version":
+                }
+                else
+                {
+                    switch (context.Request.Path)
                     {
-                        var responseObj = ChromeSessionProtocolVersion.CreateFrom("AspNetCore", typeof(IApplicationBuilder).Assembly.GetName().Version);
+                        case "/json/version":
+                            {
+                                var responseObj = ChromeSessionProtocolVersion.CreateFrom("AspNetCore", typeof(IApplicationBuilder).Assembly.GetName().Version);
 
-                        var response = JsonConvert.SerializeObject(responseObj);
-                        
-                        context.Response.Headers.Add("Content-Length", response.Length.ToString());
+                                var response = JsonConvert.SerializeObject(responseObj);
 
-                        await context.Response.WriteAsync(response);
-                        break;
-                    }
-                    case "/json":
-                    case "/json/list":
-                    {
-                        var responseObj = new[]
-                        {
+                                context.Response.Headers.Add("Content-Length", response.Length.ToString());
+
+                                await context.Response.WriteAsync(response);
+                                break;
+                            }
+                        case "/json":
+                        case "/json/list":
+                            {
+                                var responseObj = new[]
+                                {
                             ChromeSessionInstanceDescription.CreateFrom(
                                 $"{serveruri.Host}:{serveruri.Port}",
                                 "virtual instance for AspNetCore",
@@ -64,18 +60,18 @@
                             )
                         };
 
-                        var response = JsonConvert.SerializeObject(responseObj);
-                        context.Response.ContentType = "application/json; charset=UTF-8";
-                        context.Response.Headers.Add("Content-Length", response.Length.ToString());
+                                var response = JsonConvert.SerializeObject(responseObj);
+                                context.Response.ContentType = "application/json; charset=UTF-8";
+                                context.Response.Headers.Add("Content-Length", response.Length.ToString());
 
-                        await context.Response.WriteAsync(response);
-                        break;
+                                await context.Response.WriteAsync(response);
+                                break;
+                            }
+                        default:
+                            await next();
+                            break;
                     }
-                    default:
-                        await next();
-                        break;
                 }
-
             });
         }
 
