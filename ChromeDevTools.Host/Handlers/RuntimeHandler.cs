@@ -19,6 +19,7 @@ namespace ChromeDevTools.Host.Handlers
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
             session.RegisterCommandHandler<DisableCommand>(DisableCommand);
             session.RegisterCommandHandler<GetHeapUsageCommand>(GetHeapUsageCommand);
+            session.RegisterCommandHandler<EvaluateCommand>(EvaluateCommand);
         }
 
         public virtual bool IsEnable { get; protected set; }
@@ -61,6 +62,23 @@ namespace ChromeDevTools.Host.Handlers
                 TotalSize = usage.TotalSize,
                 UsedSize = usage.UsedSize
             });
+        }
+
+        public Task<ICommandResponse<EvaluateCommand>> EvaluateCommand(EvaluateCommand command)
+        {
+            return Task.FromResult<ICommandResponse<EvaluateCommand>>(new EvaluateCommandResponse
+            {
+                Result = Evaluate(command.Expression)
+            });
+        }
+
+        protected virtual RemoteObject Evaluate(string expr)
+        {
+            return new RemoteObject
+            {
+                Type = "string",
+                Value = Evaluate(expr)
+            };
         }
 
         protected virtual (double TotalSize, double UsedSize) GetHeapUsage()

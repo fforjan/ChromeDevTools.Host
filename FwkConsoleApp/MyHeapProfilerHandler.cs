@@ -2,6 +2,7 @@
 {
     using System.IO;
     using ChromeDevTools.Host.Handlers;
+    using System.Linq;
 
     /// <summary>
     /// Simple implementation of the Heap Profiler
