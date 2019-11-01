@@ -11,7 +11,7 @@ namespace FwkConsoleApp
         private readonly Guid SingleSessiongId = Guid.NewGuid();
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {
-            return new ChromeProtocolSession(webSocket, new RuntimeHandler(), new DebuggerHandler(), new ProfilerHandler(), new MyHeapProfilerHandler());
+            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(), new DebuggerHandler(), new ProfilerHandler(), new MyHeapProfilerHandler());
         }
 
         public ChromeSessionProtocolVersion GetProtocolVersion()

@@ -77,7 +77,7 @@ namespace ChromeDevTools.Host.Handlers
             return new RemoteObject
             {
                 Type = "string",
-                Value = Evaluate(expr)
+                Value = "Not implemented"
             };
         }
 
