@@ -162,69 +162,75 @@ namespace ChromeDevTools.Host
         public async Task Process(CancellationToken cancellationToken)
         {
             // we're using a 4 buffer
-            var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-            while (!request.CloseStatus.HasValue)
+            try
             {
-                var message = Encoding.ASCII.GetString(buffer, 0, request.Count);
-                var messageObject = JObject.Parse(message);
-
-                JToken id = messageObject["id"];
-
-                object methodResult = null;
-                string errorMessage = "not implemented";
-                if (messageObject.TryGetValue("method", out JToken method))
+                var buffer = new byte[1024 * 4];
+                WebSocketReceiveResult request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                while (!request.CloseStatus.HasValue)
                 {
-                    messageObject.TryGetValue("params", out JToken methodParams);
-                    if (m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation))
+                    var message = Encoding.ASCII.GetString(buffer, 0, request.Count);
+                    var messageObject = JObject.Parse(message);
+
+                    JToken id = messageObject["id"];
+
+                    object methodResult = null;
+                    string errorMessage = "not implemented";
+                    if (messageObject.TryGetValue("method", out JToken method))
                     {
-                        try
+                        messageObject.TryGetValue("params", out JToken methodParams);
+                        if (m_commandHandlers.TryGetValue(method.ToString(), out var methodImplementation))
                         {
-                            methodResult = await methodImplementation(methodParams);
-                            errorMessage = null;
-                        }
-                        catch (Exception e)
-                        {
-                            errorMessage = e.ToString();
+                            try
+                            {
+                                methodResult = await methodImplementation(methodParams);
+                                errorMessage = null;
+                            }
+                            catch (Exception e)
+                            {
+                                errorMessage = e.ToString();
+                            }
                         }
                     }
-                }
 
-                object result;
+                    object result;
 
-                // if error message is null,
-                // then execution generated a result.
-                if (errorMessage == null)
-                {
-                    result = new
+                    // if error message is null,
+                    // then execution generated a result.
+                    if (errorMessage == null)
                     {
-                        id,
-                        result = methodResult
-                    };
-                }
-                else
-                {
-                    result = new
+                        result = new
+                        {
+                            id,
+                            result = methodResult
+                        };
+                    }
+                    else
                     {
-                        id,
-                        error = errorMessage
-                    };
+                        result = new
+                        {
+                            id,
+                            error = errorMessage
+                        };
+                    }
+
+                    // we got our result, let's send the answer
+                    var requestResponse = JsonConvert.SerializeObject(result);
+
+                    await m_sessionSocket.SendAsync(new ArraySegment<byte>(Encoding.ASCII.GetBytes(requestResponse),
+                            0,
+                            requestResponse.Length),
+                        WebSocketMessageType.Text,
+                        true,
+                        CancellationToken.None);
+
+                    // wait for the next request
+                    request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
                 }
-
-                // we got our result, let's send the answer
-                var requestResponse = JsonConvert.SerializeObject(result);
-
-                await m_sessionSocket.SendAsync(new ArraySegment<byte>(Encoding.ASCII.GetBytes(requestResponse),
-                        0,
-                        requestResponse.Length),
-                    WebSocketMessageType.Text,
-                    true,
-                    CancellationToken.None);
-
-                // wait for the next request
-                request = await m_sessionSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                await m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
             }
-            await m_sessionSocket.CloseAsync(request.CloseStatus.Value, request.CloseStatusDescription, cancellationToken);
+            catch(WebSocketException e){
+                LogTrace($"Exception in processing loop: {e}");
+            } //let's not propagate this one, this is just a valid way to exit the Process
         }
 
 
