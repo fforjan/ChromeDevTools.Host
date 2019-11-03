@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
@@ -27,6 +28,29 @@ namespace FwkConsoleApp
         public static int[] GetValues(int maxNumer)
         {
             return Enumerable.Range(0, maxNumer).ToArray();
+        }
+
+        public static IEnumerable<IPublicValue> GetValuesAsInterface(int maxNumer)
+        {
+                return Enumerable.Range(0, maxNumer).Select(_ => new PublicValues { Value = _ });
+        }
+
+        public static IPublicValue GetValueAsInterface(int number)
+        {
+            return new PublicValues { Value = number };
+        }
+
+        public interface IPublicValue
+        {
+            int Value { get; }
+        }
+
+        public class PublicValues : IPublicValue
+        {
+
+            public int Value { get; set; }
+
+            int IPublicValue.Value { get => this.Value; }
         }
 
 
