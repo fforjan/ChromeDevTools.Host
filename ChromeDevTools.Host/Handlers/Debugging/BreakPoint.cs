@@ -6,14 +6,14 @@
 
     public class BreakPoint
     {
-        private readonly (int lineNumber, int columnNumber, string functionName) info;
+        public (int lineNumber, int columnNumber, string functionName) Info { get; }
 
         private TaskCompletionSource<bool> breakPointTask;
 
         public BreakPoint(string name, (int lineNumber, int columnNumber, string functionName) info)
         {
             Name = name;
-            this.info = info;
+            this.Info = info;
         }
 
         public string Name { get; }
@@ -36,7 +36,8 @@
         }
 
 
-        public Task BreakPointTask { get {
+        public Task BreakPointTask {
+            get {
 
                 // if enabled, wait for it
                 if (IsEnabled)
@@ -55,19 +56,14 @@
             }
         }
 
-        public CallFrame[] GetCallFrame(ScriptInfo relatedScript, object context)
+        public CallFrame[] GetCallFrame(ScriptInfo relatedScript)
         {
             return new[] {
                 new CallFrame
                 {
                     CallFrameId = $"topFrameFor{Name}",
-                    Location = new Location
-                    {
-                        LineNumber = info.lineNumber,
-                        ColumnNumber = info.columnNumber,
-                        ScriptId = relatedScript.Id.ToString()
-                    },
-                    FunctionName = info.functionName,
+                    Location = AsLocation(relatedScript),
+                    FunctionName = Info.functionName,
                     Url = relatedScript.Url,
                     This = new Runtime.Runtime.RemoteObject
                     {
@@ -78,6 +74,26 @@
                     ScopeChain = new Scope[] { }
 
                 }
+            };
+        }
+
+        public Location AsLocation(ScriptInfo relatedScript)
+        {
+            return new Location
+            {
+                LineNumber = Info.lineNumber,
+                ColumnNumber = Info.columnNumber,
+                ScriptId = relatedScript.Id.ToString()
+            };
+        }
+
+        public BreakLocation AsBreakLocation(ScriptInfo relatedScript)
+        {
+            return new BreakLocation
+            {
+                ColumnNumber = this.Info.columnNumber,
+                LineNumber = this.Info.lineNumber,
+                ScriptId = relatedScript.Id.ToString()
             };
         }
 

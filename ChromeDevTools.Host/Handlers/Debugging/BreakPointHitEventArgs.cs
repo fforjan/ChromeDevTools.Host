@@ -8,8 +8,6 @@
         public BreakPoint BreakPoint { get; set; }
         public ScriptInfo Script { get; set; }
 
-        public object Context { get; set; }
-
         public string Reason { get; set; }
 
         public PausedEvent AsEvent()
@@ -18,7 +16,7 @@
             {
                 HitBreakpoints = new string[0],
                 Reason = Reason ?? "breakpoint",
-                CallFrames = BreakPoint.GetCallFrame(Script, Context)
+                CallFrames = BreakPoint.GetCallFrame(Script)
             };
 
             return pausedEvent;

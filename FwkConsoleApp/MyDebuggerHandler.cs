@@ -30,7 +30,7 @@
         private Task<ICommandResponse<GetScriptSourceCommand>> GetScriptSource(GetScriptSourceCommand arg)
         {
             
-            return Task.FromResult<ICommandResponse<GetScriptSourceCommand>>(new GetScriptSourceCommandResponse { ScriptSource = ScriptsFromId[arg.ScriptId].Content });
+            return Task.FromResult<ICommandResponse<GetScriptSourceCommand>>(new GetScriptSourceCommandResponse { ScriptSource = ScriptsById[arg.ScriptId].Content });
         }
     }
 

@@ -42,7 +42,7 @@
             var debugger = session.GetService<DebuggerHandler>();
             if (debugger.IsEnable)
             {
-                return debugger.ScriptsFromId.Values.First( _ => _.Url  == scriptUrl).BreakPoints[breakPointName].BreakPointTask;
+                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].BreakPointTask;
             }
 
             return Task.CompletedTask;
