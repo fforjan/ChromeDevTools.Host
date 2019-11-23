@@ -8,12 +8,13 @@ namespace ChromeDevTools.Host.Handlers
 
     public class DebuggerHandler : IRuntimeHandler
     {
-        private ChromeProtocolSession session;
+        public ChromeProtocolSession Session { get; private set; }
 
         public virtual bool IsEnable { get; protected set; }
 
         public Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
+            this.IsEnable = true;
             return Task.FromResult<ICommandResponse<EnableCommand>>(new EnableCommandResponse
             {
                 DebuggerId = "virtual debugger"
@@ -28,7 +29,7 @@ namespace ChromeDevTools.Host.Handlers
 
         public virtual void Register(ChromeProtocolSession session)
         {
-            this.session = session;
+            this.Session = session;
 
 
             session.RegisterCommandHandler<DisableCommand>(this.DisableCommand);
