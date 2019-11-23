@@ -4,7 +4,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
     using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Debugger;
-   
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -88,22 +88,31 @@ namespace ChromeDevTools.Host.Handlers.Debugging
         {
             var result = new SetBreakpointByUrlCommandResponse();
 
-            bool breakPointMatch(BreakPoint breakPointToCheck)
-            {
-                return breakPointToCheck.Info.lineNumber == arg.LineNumber
-                    && breakPointToCheck.Info.columnNumber == arg.ColumnNumber;
-            }
-
             var url = arg.Url ?? arg.UrlRegex.Trim('|');
 
             var script = this.ScriptsByUrl[url];
 
-            var breakPoint = script.BreakPoints.Values.First(breakPointMatch);
+            BreakPoint closestBreakpoint = null;
+            var closestLineDistance = long.MaxValue;
+            var closestColumnDistance = long.MaxValue;
 
-            breakPoint.IsEnabled = true;
+            foreach (var breakPoint in script.BreakPoints.Values)
+            {
+                var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - arg.LineNumber);
+                var currentColumnDistance = arg.ColumnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - arg.ColumnNumber.Value) : breakPoint.Info.columnNumber;
+                if (currentLineDistance < closestLineDistance
+                    || (currentLineDistance == closestLineDistance && currentColumnDistance < closestColumnDistance))
+                {
+                    closestBreakpoint = breakPoint;
+                    closestLineDistance = currentLineDistance;
+                    closestColumnDistance = currentColumnDistance;
+                }
+            }
 
-            result.BreakpointId = script.Url + "/" + breakPoint.Name;
-            result.Locations = new[] { breakPoint.AsLocation(script) };
+            closestBreakpoint.IsEnabled = true;
+
+            result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
+            result.Locations = new[] { closestBreakpoint.AsLocation(script) };
 
             return Task.FromResult<ICommandResponse<SetBreakpointByUrlCommand>>(result);
         }
