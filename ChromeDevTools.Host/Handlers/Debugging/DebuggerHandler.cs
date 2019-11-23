@@ -35,7 +35,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
         protected void BreakPointWasHit(object sender, BreakPointHitEventArgs e)
         {
-            Session.SendEvent(e.AsEvent()).Wait();
+            Session.SendEvent(e.AsEvent());
         }
 
         public Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
@@ -86,35 +86,38 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
         private Task<ICommandResponse<SetBreakpointByUrlCommand>> SetBreakpointByUrlCommand(SetBreakpointByUrlCommand arg)
         {
-            var result = new SetBreakpointByUrlCommandResponse();
-
-            var url = arg.Url ?? arg.UrlRegex.Trim('|');
-
-            var script = this.ScriptsByUrl[url];
-
-            BreakPoint closestBreakpoint = null;
-            var closestLineDistance = long.MaxValue;
-            var closestColumnDistance = long.MaxValue;
-
-            foreach (var breakPoint in script.BreakPoints.Values)
+            return Task.Run<ICommandResponse<SetBreakpointByUrlCommand>>(() =>
             {
-                var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - arg.LineNumber);
-                var currentColumnDistance = arg.ColumnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - arg.ColumnNumber.Value) : breakPoint.Info.columnNumber;
-                if (currentLineDistance < closestLineDistance
-                    || (currentLineDistance == closestLineDistance && currentColumnDistance < closestColumnDistance))
+                var result = new SetBreakpointByUrlCommandResponse();
+
+                var url = arg.Url ?? arg.UrlRegex.Trim('|');
+
+                var script = this.ScriptsByUrl[url];
+
+                BreakPoint closestBreakpoint = null;
+                var closestLineDistance = long.MaxValue;
+                var closestColumnDistance = long.MaxValue;
+
+                foreach (var breakPoint in script.BreakPoints.Values)
                 {
-                    closestBreakpoint = breakPoint;
-                    closestLineDistance = currentLineDistance;
-                    closestColumnDistance = currentColumnDistance;
+                    var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - arg.LineNumber);
+                    var currentColumnDistance = arg.ColumnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - arg.ColumnNumber.Value) : breakPoint.Info.columnNumber;
+                    if (currentLineDistance < closestLineDistance
+                        || (currentLineDistance == closestLineDistance && currentColumnDistance < closestColumnDistance))
+                    {
+                        closestBreakpoint = breakPoint;
+                        closestLineDistance = currentLineDistance;
+                        closestColumnDistance = currentColumnDistance;
+                    }
                 }
-            }
 
-            closestBreakpoint.IsEnabled = true;
+                closestBreakpoint.IsEnabled = true;
 
-            result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
-            result.Locations = new[] { closestBreakpoint.AsLocation(script) };
+                result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
+                result.Locations = new[] { closestBreakpoint.AsLocation(script) };
 
-            return Task.FromResult<ICommandResponse<SetBreakpointByUrlCommand>>(result);
+                return result;
+            });
         }
 
         private async Task<ICommandResponse<ResumeCommand>> ResumeCommand(ResumeCommand arg)
@@ -126,27 +129,30 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
         private Task<ICommandResponse<GetPossibleBreakpointsCommand>> GetPossibleBreakpointsCommand(GetPossibleBreakpointsCommand arg)
         {
-            var result = new GetPossibleBreakpointsCommandResponse();
-
-            var script = ScriptsById[arg.Start.ScriptId];
-
-            bool isIncluded(BreakPoint breakPoint)
+            return Task.Run<ICommandResponse<GetPossibleBreakpointsCommand>>(() =>
             {
-                var afterStart = breakPoint.Info.lineNumber > arg.Start.LineNumber
-                            || (breakPoint.Info.lineNumber == arg.Start.LineNumber
-                                && breakPoint.Info.columnNumber >= arg.Start.ColumnNumber);
-                var beforeEnd = breakPoint.Info.lineNumber < arg.End.LineNumber
-                            || (breakPoint.Info.lineNumber == arg.End.LineNumber
-                                && breakPoint.Info.columnNumber <= arg.End.ColumnNumber);
+                var result = new GetPossibleBreakpointsCommandResponse();
 
-                return afterStart && beforeEnd;
-            }
+                var script = ScriptsById[arg.Start.ScriptId];
 
-            result.Locations = script.BreakPoints.Values
-                .Where(isIncluded)
-                .Select(_ => _.AsBreakLocation(script)).ToArray();
+                bool isIncluded(BreakPoint breakPoint)
+                {
+                    var afterStart = breakPoint.Info.lineNumber > arg.Start.LineNumber
+                                || (breakPoint.Info.lineNumber == arg.Start.LineNumber
+                                    && breakPoint.Info.columnNumber >= arg.Start.ColumnNumber);
+                    var beforeEnd = breakPoint.Info.lineNumber < arg.End.LineNumber
+                                || (breakPoint.Info.lineNumber == arg.End.LineNumber
+                                    && breakPoint.Info.columnNumber <= arg.End.ColumnNumber);
 
-            return Task.FromResult<ICommandResponse<GetPossibleBreakpointsCommand >>(result);
+                    return afterStart && beforeEnd;
+                }
+
+                result.Locations = script.BreakPoints.Values
+                    .Where(isIncluded)
+                    .Select(_ => _.AsBreakLocation(script)).ToArray();
+
+                return result;
+            });
         }
 
         protected virtual Task<ICommandResponse<SetBreakpointsActiveCommand>> SetBreakpointsActiveCommand(SetBreakpointsActiveCommand arg) {
