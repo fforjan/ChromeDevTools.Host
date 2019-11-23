@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
 using ChromeDevTools.Host;
@@ -9,9 +10,11 @@ namespace FwkConsoleApp
     internal class SingleSessionProvider : IChromeSessionProvider
     {
         private readonly Guid SingleSessiongId = Guid.NewGuid();
+        private MyScript myScript = new MyScript();
+
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {
-            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(), new MyDebuggerHandler(new MyScript()), new ProfilerHandler(), new MyHeapProfilerHandler());
+            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(myScript), new MyDebuggerHandler(myScript), new ProfilerHandler(), new MyHeapProfilerHandler());
         }
 
         public ChromeSessionProtocolVersion GetProtocolVersion()

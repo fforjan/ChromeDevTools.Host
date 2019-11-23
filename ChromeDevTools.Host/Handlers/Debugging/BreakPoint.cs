@@ -1,11 +1,14 @@
 ﻿namespace ChromeDevTools.Host.Handlers.Debugging
 {
-
+    using System;
+    using System.Threading.Tasks;
     using ChromeDevTools.Host.Runtime.Debugger;
 
     public class BreakPoint
     {
         private readonly (int lineNumber, int columnNumber, string functionName) info;
+
+        private TaskCompletionSource<bool> breakPointTask;
 
         public BreakPoint(string name, (int lineNumber, int columnNumber, string functionName) info)
         {
@@ -15,7 +18,44 @@
 
         public string Name { get; }
 
-        public CallFrame[] GetCallFrame(ScriptInfo relatedScript)
+        public bool IsEnabled
+        {
+            get;
+            set;
+        }
+
+        public bool IsBreaked { get { return this.breakPointTask != null; } }
+
+        public Task Continue()
+        {
+            var currentTask = breakPointTask;
+            breakPointTask = null;
+            currentTask.SetResult(true);
+
+            return currentTask.Task;
+        }
+
+
+        public Task BreakPointTask { get {
+
+                // if enabled, wait for it
+                if (IsEnabled)
+                {
+                    if (breakPointTask == null)
+                    {
+                        breakPointTask = new TaskCompletionSource<bool>();
+                    }
+
+                    this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
+
+                    return breakPointTask.Task;
+                }
+
+                return Task.CompletedTask;
+            }
+        }
+
+        public CallFrame[] GetCallFrame(ScriptInfo relatedScript, object context)
         {
             return new[] {
                 new CallFrame
@@ -41,5 +81,6 @@
             };
         }
 
+        public event EventHandler<BreakPointHitEventArgs> BreakPointHit;
     }
 }

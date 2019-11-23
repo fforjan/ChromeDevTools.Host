@@ -1,5 +1,6 @@
 ﻿namespace ChromeDevTools.Host.Handlers.Debugging
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -25,6 +26,18 @@
             this.HashCode = content.GetHashCode().ToString();
 
             this.BreakPoints = breakPoints.ToDictionary(_ => _.Name);
+
+            foreach(var breakPoint in breakPoints)
+            {
+                breakPoint.BreakPointHit += this.BreakPointWasHit;
+            }
+        }
+
+
+        protected void BreakPointWasHit(object sender, BreakPointHitEventArgs arg)
+        {
+            arg.Script = this;
+            this.BreakPointHit.Invoke(this, arg);
         }
 
         public int Id { get; } = ++NextID;
@@ -60,5 +73,6 @@
             };
         }
 
+        public event EventHandler<BreakPointHitEventArgs> BreakPointHit;
     }
 }

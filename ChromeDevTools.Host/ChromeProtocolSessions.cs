@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using ChromeDevTools.Host.Handlers.Debugging;
 
     public class ChromeProtocolSessions
     {
@@ -29,6 +30,22 @@
         public Task ForEach(Func<ChromeProtocolSession, Task> chromeSessionAction)
         {
             return Task.WhenAll(sessions.Select(chromeSessionAction));
+        }
+
+        public Task BreakOn(string scriptUrl, string breakPointName)
+        {
+            return Task.WhenAll(sessions.Select(_ => BreakOn(scriptUrl, breakPointName, _)));
+        }
+
+        private Task BreakOn(string scriptUrl, string breakPointName, ChromeProtocolSession session)
+        {
+            var debugger = session.GetService<DebuggerHandler>();
+            if (debugger.IsEnable)
+            {
+                return debugger.ScriptsFromId.Values.First( _ => _.Url  == scriptUrl).BreakPoints[breakPointName].BreakPointTask;
+            }
+
+            return Task.CompletedTask;
         }
 
         private class Dispose : IDisposable

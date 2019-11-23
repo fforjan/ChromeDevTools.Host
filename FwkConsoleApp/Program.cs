@@ -65,9 +65,11 @@ namespace FwkConsoleApp
             int i = 0;
             while (true)
             {
-                Thread.Sleep(1000);
+                await sessions.BreakOn("Main", "sleep");
+                await Task.Delay(1000);
                 if (echo)
                 {
+                    await sessions.BreakOn("Main", "log");
                     switch (i % 4)
                     {
                         case 0: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;

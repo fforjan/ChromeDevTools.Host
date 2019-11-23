@@ -12,7 +12,12 @@
     {
 
         private Engine engine;
+        private readonly MyScript script;
 
+        public MyRuntimeHandler(MyScript script)
+        {
+            this.script = script;
+        }
 
         private Engine CreateEngine()
         {
@@ -22,7 +27,36 @@
                 .SetValue("getValues", new Func<int, int[]>(Program.GetValues))
                 .SetValue("getValuesAsInterface", new Func<int, IEnumerable<Program.IPublicValue>>(Program.GetValuesAsInterface))
 
-                .SetValue("getValueAsInterface", new Func<int, Program.IPublicValue>(Program.GetValueAsInterface));
+                .SetValue("getValueAsInterface", new Func<int, Program.IPublicValue>(Program.GetValueAsInterface))
+
+                .SetValue("enableBreakpoint", new Func<string, bool>(EnableBreakPoint))
+                .SetValue("disableBreakpoint", new Func<string, bool>(DisableBreakPoint))
+                .SetValue("getBreakpoints", new Func<string[]>(GetBreakPoints));
+        }
+
+        private string[] GetBreakPoints()
+        {
+            return script.BreakPoints.Keys.ToArray();
+        }
+
+        private bool EnableBreakPoint(string breakPointName)
+        {
+            if(script.BreakPoints.TryGetValue(breakPointName, out var breakPoint))
+            {
+                return breakPoint.IsEnabled = true;        
+            }
+
+            return false;
+        }
+
+        private bool DisableBreakPoint(string breakPointName)
+        {
+            if (script.BreakPoints.TryGetValue(breakPointName, out var breakPoint))
+            {
+                return !(breakPoint.IsEnabled = false);
+            }
+
+            return false;
         }
 
         protected override RemoteObject Evaluate(string expr)
