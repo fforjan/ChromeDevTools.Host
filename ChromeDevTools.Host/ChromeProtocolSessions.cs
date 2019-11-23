@@ -42,11 +42,15 @@
             var debugger = session.GetService<DebuggerHandler>();
             if (debugger.IsEnable)
             {
-                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].BreakPointTask;
+                return Task.WhenAny(
+                    debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].BreakPointTask,
+                    lastSessionDisposed.Task);
             }
 
             return Task.CompletedTask;
         }
+
+        private TaskCompletionSource<bool> lastSessionDisposed = new TaskCompletionSource<bool>();
 
         private class Dispose : IDisposable
         {
@@ -64,6 +68,12 @@
                 lock (sessions.locker)
                 {
                     sessions.sessions = sessions.sessions.Where(_ => _ != session).ToList();
+
+                    if(sessions.sessions.Count == 0)
+                    {
+                        sessions.lastSessionDisposed.SetResult(true);
+                        sessions.lastSessionDisposed = new TaskCompletionSource<bool>();
+                    }
                 }
             }
         }
