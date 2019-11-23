@@ -9,5 +9,6 @@
   </ItemGroup>    
   <ItemGroup>
     <Folder Include="Handlers\" />
+    <Folder Include="Handlers\Debugging\" />
   </ItemGroup>
 </Project>

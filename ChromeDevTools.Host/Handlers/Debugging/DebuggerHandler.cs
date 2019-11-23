@@ -1,8 +1,8 @@
-namespace ChromeDevTools.Host.Handlers
+namespace ChromeDevTools.Host.Handlers.Debugging
 {
-	using ChromeDevTools.Host;
+    using ChromeDevTools.Host;
 
-	using ChromeDevTools.Host.Runtime;
+    using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Debugger;
     using System.Threading.Tasks;
 

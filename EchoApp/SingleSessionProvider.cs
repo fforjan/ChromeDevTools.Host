@@ -2,6 +2,7 @@
 using System.Net.WebSockets;
 using ChromeDevTools.Host;
 using ChromeDevTools.Host.Handlers;
+using ChromeDevTools.Host.Handlers.Debugging;
 using Microsoft.AspNetCore.Builder;
 
 namespace EchoApp
