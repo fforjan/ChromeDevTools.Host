@@ -1,6 +1,7 @@
 ﻿namespace ChromeDevTools.Host.Handlers.Debugging
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using ChromeDevTools.Host.Runtime.Debugger;
 
@@ -36,24 +37,24 @@
         }
 
 
-        public Task BreakPointTask {
-            get {
-
-                // if enabled, wait for it
-                if (IsEnabled)
+        public Task GetBreakPointTask(CancellationToken cancellationToken)
+        {
+        
+            // if enabled, wait for it
+            if (IsEnabled)
+            {
+                if (breakPointTask == null)
                 {
-                    if (breakPointTask == null)
-                    {
-                        breakPointTask = new TaskCompletionSource<bool>();
-                    }
-
-                    this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
-
-                    return breakPointTask.Task;
+                    this.breakPointTask = new TaskCompletionSource<bool>();
+                    cancellationToken.Register(() => this.Continue());
                 }
 
-                return Task.CompletedTask;
+                this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
+
+                return breakPointTask.Task;
             }
+
+            return Task.CompletedTask; 
         }
 
         public CallFrame[] GetCallFrame(ScriptInfo relatedScript)

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using ChromeDevTools.Host.Handlers.Debugging;
 
@@ -42,15 +43,13 @@
             var debugger = session.GetService<DebuggerHandler>();
             if (debugger.IsEnable)
             {
-                return Task.WhenAny(
-                    debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].BreakPointTask,
-                    lastSessionDisposed.Task);
+                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].GetBreakPointTask(lastSessionDisposed.Token);
             }
 
             return Task.CompletedTask;
         }
 
-        private TaskCompletionSource<bool> lastSessionDisposed = new TaskCompletionSource<bool>();
+        private CancellationTokenSource lastSessionDisposed = new CancellationTokenSource();
 
         private class Dispose : IDisposable
         {
@@ -71,8 +70,8 @@
 
                     if(sessions.sessions.Count == 0)
                     {
-                        sessions.lastSessionDisposed.SetResult(true);
-                        sessions.lastSessionDisposed = new TaskCompletionSource<bool>();
+                        sessions.lastSessionDisposed.Cancel();
+                        sessions.lastSessionDisposed = new CancellationTokenSource();
                     }
                 }
             }
