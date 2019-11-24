@@ -37,9 +37,8 @@
         }
 
 
-        public Task GetBreakPointTask(CancellationToken cancellationToken)
+        public Task GetBreakPointTask(CancellationToken cancellationToken, Action beforeBreak, Action afterBreak)
         {
-        
             // if enabled, wait for it
             if (IsEnabled)
             {
@@ -49,7 +48,9 @@
                     cancellationToken.Register(() => this.Continue());
                 }
 
+                beforeBreak();
                 this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
+                breakPointTask.Task.ContinueWith((_) => afterBreak);
 
                 return breakPointTask.Task;
             }
@@ -66,14 +67,25 @@
                     Location = AsLocation(relatedScript),
                     FunctionName = Info.functionName,
                     Url = relatedScript.Url,
-                    This = new Runtime.Runtime.RemoteObject
+                    This = new Host.Runtime.Runtime.RemoteObject
                     {
                         Subtype = "null",
                         Type = "object",
                         Value = null
                     },
-                    ScopeChain = new Scope[] { }
-
+                    ScopeChain = new [] {
+                        new Scope
+                        {
+                            Type = "local",
+                            Object = new Host.Runtime.Runtime.RemoteObject
+                            {
+                                Type = "object",
+                                ClassName = "Object",
+                                Description = "Object",
+                                ObjectId = nameof(Runtime.RuntimeHandler.LocalObject)
+                            }
+                        }
+                    }
                 }
             };
         }

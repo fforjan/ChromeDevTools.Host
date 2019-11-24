@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ChromeDevTools.Host.Handlers.Debugging;
+    using ChromeDevTools.Host.Handlers.Runtime;
 
     public class ChromeProtocolSessions
     {
@@ -33,17 +34,23 @@
             return Task.WhenAll(sessions.Select(chromeSessionAction));
         }
 
-        public Task BreakOn(string scriptUrl, string breakPointName)
+        public Task BreakOn(string scriptUrl, string breakPointName, object context)
         {
-            return Task.WhenAll(sessions.Select(_ => BreakOn(scriptUrl, breakPointName, _)));
+            return Task.WhenAll(sessions.Select(_ => BreakOn(scriptUrl, breakPointName, _, context)));
         }
 
-        private Task BreakOn(string scriptUrl, string breakPointName, ChromeProtocolSession session)
+        private Task BreakOn(string scriptUrl, string breakPointName, ChromeProtocolSession session, object context)
         {
             var debugger = session.GetService<DebuggerHandler>();
             if (debugger.IsEnable)
             {
-                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].GetBreakPointTask(lastSessionDisposed.Token);
+                var runtimeHanlder = session.GetService<RuntimeHandler>();
+
+                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].GetBreakPointTask(
+                    lastSessionDisposed.Token,
+                    () => { runtimeHanlder.LocalObject = context; },
+                    () => { runtimeHanlder.LocalObject = null; }
+                    );
             }
 
             return Task.CompletedTask;

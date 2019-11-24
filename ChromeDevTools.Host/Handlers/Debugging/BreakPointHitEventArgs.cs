@@ -14,7 +14,7 @@
         {
             var pausedEvent = new PausedEvent
             {
-                HitBreakpoints = new string[0],
+                HitBreakpoints = new[] { Script.Url + "/" + BreakPoint.Name },
                 Reason = Reason ?? "breakpoint",
                 CallFrames = BreakPoint.GetCallFrame(Script)
             };

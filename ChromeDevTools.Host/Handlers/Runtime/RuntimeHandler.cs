@@ -1,15 +1,20 @@
-namespace ChromeDevTools.Host.Handlers
+namespace ChromeDevTools.Host.Handlers.Runtime
 {
     using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public class RuntimeHandler : IRuntimeHandler
     {
         private ChromeProtocolSession session;
 
+        private PropertyDescriptorCreator propertyDescriptorCreator = new PropertyDescriptorCreator();
+
+        public object LocalObject { get; set; }
+      
         public virtual void Register(ChromeProtocolSession session)
         {
             this.IsEnable = false;
@@ -20,6 +25,8 @@ namespace ChromeDevTools.Host.Handlers
             session.RegisterCommandHandler<DisableCommand>(DisableCommand);
             session.RegisterCommandHandler<GetHeapUsageCommand>(GetHeapUsageCommand);
             session.RegisterCommandHandler<EvaluateCommand>(EvaluateCommand);
+
+            session.RegisterCommandHandler<GetPropertiesCommand>(GetPropertiesCommand);
         }
 
         public virtual bool IsEnable { get; protected set; }
@@ -46,6 +53,26 @@ namespace ChromeDevTools.Host.Handlers
 
             return new EnableCommandResponse();
         }
+
+        public Task<ICommandResponse<GetPropertiesCommand>> GetPropertiesCommand(GetPropertiesCommand command)
+        {
+            return Task.Run<ICommandResponse<GetPropertiesCommand>>(() =>
+            {
+                var result = new GetPropertiesCommandResponse();
+                if (command.ObjectId != nameof(LocalObject) || LocalObject == null)
+                {
+                    result.Result = Array.Empty<PropertyDescriptor>();
+                }
+                else
+                {
+                    result.Result = propertyDescriptorCreator.GetProperties(LocalObject).ToArray();
+
+                }
+                return result;
+            });
+        }
+
+        
 
         public Task<ICommandResponse<DisableCommand>> DisableCommand(DisableCommand command)
         {
@@ -74,11 +101,7 @@ namespace ChromeDevTools.Host.Handlers
 
         protected virtual RemoteObject Evaluate(string expr)
         {
-            return new RemoteObject
-            {
-                Type = "string",
-                Value = "Not implemented"
-            };
+            return RemoteObjectCreator.Create("Not implemented");
         }
 
         protected virtual (double TotalSize, double UsedSize) GetHeapUsage()
@@ -141,18 +164,17 @@ namespace ChromeDevTools.Host.Handlers
                 Type = level,
                 Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 ExecutionContextId = Context,
-                Args = new RemoteObject[] {
-                   new RemoteObject{
-                       Type = "string",
-                       Value = logMessage
-                   }
-               }
+                Args = new RemoteObject[]
+                {
+                   RemoteObjectCreator.Create(logMessage)
+                }
             };
 
             return logEvent;
         }
 
         public int Context { get { return 1; } }
+
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace FwkConsoleApp
 {
     using ChromeDevTools.Host.Handlers;
+    using ChromeDevTools.Host.Handlers.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;
     using Jint;
     using Jint.Runtime;
@@ -68,30 +69,18 @@
             if ("cls()" == expr.Trim())
             {
                 engine = CreateEngine();
-                return new RemoteObject
-                {
-                    Type = "string",
-                    Value = "new engine created"
-                };
+                return RemoteObjectCreator.Create("new engine created");
             }
 
             try
             {
                 engine = engine.Execute(expr);
 
-                return new RemoteObject
-                {
-                    Type = "string",
-                    Value = engine.GetCompletionValue().ToString()
-                };
+                return RemoteObjectCreator.Create(engine.GetCompletionValue().ToString());                
             }
             catch (JavaScriptException e)
             {
-                return new RemoteObject
-                {
-                    Type = "string",
-                    Value = "exception:  " + e.Message
-                };
+                return RemoteObjectCreator.Create(e.Message);            
             }
         }
     }

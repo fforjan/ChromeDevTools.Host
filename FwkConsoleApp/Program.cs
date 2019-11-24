@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ChromeDevTools.Host;
 using ChromeDevTools.Host.FwkSelfHost;
 using ChromeDevTools.Host.Handlers;
+using ChromeDevTools.Host.Handlers.Runtime;
 
 namespace FwkConsoleApp
 {
@@ -65,11 +66,11 @@ namespace FwkConsoleApp
             int i = 0;
             while (true)
             {
-                await sessions.BreakOn("Main", "sleep");
+                await sessions.BreakOn("Main", "sleep", null);
                 await Task.Delay(1000);
                 if (echo)
                 {
-                    await sessions.BreakOn("Main", "log");
+                    await sessions.BreakOn("Main", "log", new { i });
                     switch (i % 4)
                     {
                         case 0: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;

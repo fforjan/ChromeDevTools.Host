@@ -9,6 +9,12 @@ in case of chrome, you do not see the full set of low level TCP info or low-leve
 the network activities or the javascript objects.
 You can now do the same with your application !
 
+# Supported feature
+- Logging support
+- Memory snapshot
+- Scripting
+- Debugging
+
 # Demo
 
 ### **Step 1** - run the sample you want.
