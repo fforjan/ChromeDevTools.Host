@@ -11,6 +11,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
     public class DebuggerHandler : IRuntimeHandler
     {
+        public static readonly BreakPoint AnyBreakpoint = new BreakPoint("Any", (-1,-1,"Any"));
 
         private Dictionary<string, ScriptInfo> scriptsById;
         private Dictionary<string, ScriptInfo> scriptsByUrl;
@@ -24,6 +25,8 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             scriptsById = new Dictionary<string, ScriptInfo>();
             scriptsByUrl = new Dictionary<string, ScriptInfo>();
         }
+
+        public BreakPoint BreakOn { get; set; }
 
         public void RegisterScripts(ScriptInfo scriptInfo)
         {
@@ -65,14 +68,19 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
             session.RegisterCommandHandler<DisableCommand>(this.DisableCommand);
             session.RegisterCommandHandler<EnableCommand>(this.EnableCommand);
-            session.RegisterCommandHandler<ResumeCommand>(this.ResumeCommand);
+            
+
             session.RegisterCommandHandler<GetPossibleBreakpointsCommand>(this.GetPossibleBreakpointsCommand);
 
             session.RegisterCommandHandler<SetBreakpointsActiveCommand>(this.SetBreakpointsActiveCommand);
-
             session.RegisterCommandHandler<SetBreakpointByUrlCommand>(this.SetBreakpointByUrlCommand);
-
             session.RegisterCommandHandler<RemoveBreakpointCommand>(this.RemoveBreakpointCommand);
+
+            session.RegisterCommandHandler<ResumeCommand>(this.ResumeCommand);
+            session.RegisterCommandHandler<PauseCommand>(this.PauseCommand);
+            session.RegisterCommandHandler<ContinueToLocationCommand>(this.ContinueToLocationCommand);
+            session.RegisterCommandHandler<StepOverCommand>(this.StepOverCommand);
+
         }
 
         private Task<ICommandResponse<RemoveBreakpointCommand>> RemoveBreakpointCommand(RemoveBreakpointCommand arg)
@@ -94,22 +102,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
                 var script = this.ScriptsByUrl[url];
 
-                BreakPoint closestBreakpoint = null;
-                var closestLineDistance = long.MaxValue;
-                var closestColumnDistance = long.MaxValue;
-
-                foreach (var breakPoint in script.BreakPoints.Values)
-                {
-                    var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - arg.LineNumber);
-                    var currentColumnDistance = arg.ColumnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - arg.ColumnNumber.Value) : breakPoint.Info.columnNumber;
-                    if (currentLineDistance < closestLineDistance
-                        || (currentLineDistance == closestLineDistance && currentColumnDistance < closestColumnDistance))
-                    {
-                        closestBreakpoint = breakPoint;
-                        closestLineDistance = currentLineDistance;
-                        closestColumnDistance = currentColumnDistance;
-                    }
-                }
+                var closestBreakpoint = GetClosetBreakPoint(script, arg.LineNumber, arg.ColumnNumber);
 
                 closestBreakpoint.IsEnabled = true;
 
@@ -120,11 +113,66 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             });
         }
 
+        private BreakPoint GetClosetBreakPoint(ScriptInfo script, long lineNumber, long? columnNumber)
+        {
+
+            BreakPoint closestBreakpoint = null;
+            var closestLineDistance = long.MaxValue;
+            var closestColumnDistance = long.MaxValue;
+
+            foreach (var breakPoint in script.BreakPoints.Values)
+            {
+                var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - lineNumber);
+                var currentColumnDistance = columnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - columnNumber.Value) : breakPoint.Info.columnNumber;
+                if (currentLineDistance < closestLineDistance
+                    || (currentLineDistance == closestLineDistance && currentColumnDistance < closestColumnDistance))
+                {
+                    closestBreakpoint = breakPoint;
+                    closestLineDistance = currentLineDistance;
+                    closestColumnDistance = currentColumnDistance;
+                }
+            }
+
+            return closestBreakpoint;
+        }
+
         private Task<ICommandResponse<ResumeCommand>> ResumeCommand(ResumeCommand arg)
         {
-            this.ScriptsById.Values.SelectMany(_ => _.BreakPoints.Values).First(_ => _.IsBreaked).Continue();
+            Continue();
 
             return Task.FromResult < ICommandResponse < ResumeCommand >>( new ResumeCommandResponse());
+        }
+
+        private void Continue()
+        {
+            this.ScriptsById.Values.SelectMany(_ => _.BreakPoints.Values).First(_ => _.IsBreaked).Continue();
+        }
+
+        private Task<ICommandResponse<PauseCommand>> PauseCommand(PauseCommand arg)
+        {
+            this.BreakOn = AnyBreakpoint;
+
+            return Task.FromResult<ICommandResponse<PauseCommand>>(new PauseCommandResponse());
+        }
+
+        private Task<ICommandResponse<StepOverCommand>> StepOverCommand(StepOverCommand arg)
+        {
+            this.BreakOn = AnyBreakpoint;
+            Continue();
+            return Task.FromResult<ICommandResponse<StepOverCommand>>(new StepOverCommandResponse());
+        }
+
+
+        private Task<ICommandResponse<ContinueToLocationCommand>> ContinueToLocationCommand(ContinueToLocationCommand arg)
+        {
+            this.BreakOn = GetClosetBreakPoint(
+                this.ScriptsById[arg.Location.ScriptId],
+                arg.Location.LineNumber,
+                arg.Location.ColumnNumber);
+
+            Continue();
+
+            return Task.FromResult<ICommandResponse<ContinueToLocationCommand>>(new ContinueToLocationCommandResponse());
         }
 
         private Task<ICommandResponse<GetPossibleBreakpointsCommand>> GetPossibleBreakpointsCommand(GetPossibleBreakpointsCommand arg)

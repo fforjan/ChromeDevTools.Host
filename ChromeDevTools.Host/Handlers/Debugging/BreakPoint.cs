@@ -40,32 +40,20 @@
         }
 
 
-        public Task GetBreakPointTask(CancellationToken cancellationToken, ScriptInfo relatedScript, Func<string,IDisposable> breakpointContext)
+        public Task GetBreakPointTask(CancellationToken cancellationToken)
         {
-            // if enabled, wait for it
-            if (IsEnabled)
+            lock (locker)
             {
-                lock (locker)
+                if (breakPointTask == null)
                 {
-                    if (breakPointTask == null)
-                    {
-                        this.breakPointTask = new TaskCompletionSource<bool>();
-                        cancellationToken.Register(this.Continue);
-                    }
-
-                    var context = breakpointContext?.Invoke(relatedScript.Url + "/" + Name + ":1");
-                    if (context != null)
-                    {
-                        breakPointTask.Task.ContinueWith((_) => context.Dispose());
-                    }
-
-                    this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
-
-                    return breakPointTask.Task;
+                    this.breakPointTask = new TaskCompletionSource<bool>();
+                    cancellationToken.Register(this.Continue);
                 }
-            }
 
-            return Task.CompletedTask; 
+                this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
+
+                return breakPointTask.Task;
+            }
         }
 
         public CallFrame[] GetCallFrame(ScriptInfo relatedScript)
@@ -92,12 +80,17 @@
                                 Type = "object",
                                 ClassName = "Object",
                                 Description = "Object",
-                                ObjectId = relatedScript.Url + "/" + Name + ":1"
+                                ObjectId = GetContextId(relatedScript)
                             }
                         }
                     }
                 }
             };
+        }
+
+        public string GetContextId(ScriptInfo relatedScript)
+        {
+            return relatedScript.Url + "/" + Name + ":1";
         }
 
         public Location AsLocation(ScriptInfo relatedScript)

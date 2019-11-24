@@ -48,11 +48,27 @@
                 var script = debugger.ScriptsByUrl[scriptUrl];
                 var breakPoint = script.BreakPoints[breakPointName];
 
-                return breakPoint.GetBreakPointTask(
-                    lastSessionDisposed.Token,
-                    script,
-                    context == null ?  (Func<string,IDisposable>)null : (string contextId) => runtimeHanlder.AllocateLocalObject(contextId, context)
-                    );
+                if (debugger.BreakOn == DebuggerHandler.AnyBreakpoint
+                    || debugger.BreakOn == breakPoint
+                    || breakPoint.IsEnabled)
+                {
+                    debugger.BreakOn = null;
+
+
+                    IDisposable localObjectContext = null;
+                    if (context != null)
+                    {
+                        localObjectContext = runtimeHanlder.AllocateLocalObject(breakPoint.GetContextId(script), context);
+                    }
+
+                    var task = breakPoint.GetBreakPointTask(lastSessionDisposed.Token);
+                    if (localObjectContext != null)
+                    {
+                        task.ContinueWith((_) => localObjectContext.Dispose());
+                    }
+
+                    return task;
+                }
             }
 
             return Task.CompletedTask;
