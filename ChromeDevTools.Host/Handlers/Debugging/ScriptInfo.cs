@@ -10,7 +10,7 @@
     {
         private static int NextID = 1;
 
-        public ScriptInfo(string content, string url, params BreakPoint[] breakPoints)
+        public ScriptInfo(string content, string url, params BreakableScriptPoint[] breakPoints)
         {
             this.Content = content;
             this.Url = url;
@@ -25,7 +25,7 @@
 
             this.HashCode = content.GetHashCode().ToString();
 
-            this.BreakPoints = breakPoints.ToDictionary(_ => _.Name);
+            this.BreakableScriptPoint = breakPoints.ToDictionary(_ => _.Name);
 
             foreach(var breakPoint in breakPoints)
             {
@@ -45,7 +45,7 @@
 
         public string HashCode { get; }
 
-        public IReadOnlyDictionary<string, BreakPoint> BreakPoints { get; }
+        public IReadOnlyDictionary<string, BreakableScriptPoint> BreakableScriptPoint { get; }
 
         public string Content { get; }
 

@@ -5,7 +5,7 @@
 
     public class BreakPointHitEventArgs : EventArgs
     {
-        public BreakPoint BreakPoint { get; set; }
+        public BreakableScriptPoint BreakPoint { get; set; }
         public ScriptInfo Script { get; set; }
 
         public string Reason { get; set; }
@@ -14,7 +14,7 @@
         {
             var pausedEvent = new PausedEvent
             {
-                HitBreakpoints = new[] { Script.Url + "/" + BreakPoint.Name },
+                HitBreakpoints = new[] { BreakPoint.GetBreakPointName(Script) },
                 Reason = Reason ?? "breakpoint",
                 CallFrames = BreakPoint.GetCallFrame(Script)
             };

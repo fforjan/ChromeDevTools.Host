@@ -11,7 +11,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
     public class DebuggerHandler : IRuntimeHandler
     {
-        public static readonly BreakPoint AnyBreakpoint = new BreakPoint("Any", (-1,-1,"Any"));
+        public static readonly BreakableScriptPoint AnyBreakpoint = new BreakableScriptPoint("Any", (-1,-1,"Any"));
 
         private Dictionary<string, ScriptInfo> scriptsById;
         private Dictionary<string, ScriptInfo> scriptsByUrl;
@@ -26,7 +26,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             scriptsByUrl = new Dictionary<string, ScriptInfo>();
         }
 
-        public BreakPoint BreakOn { get; set; }
+        public BreakableScriptPoint BreakOn { get; set; }
 
         public void RegisterScripts(ScriptInfo scriptInfo)
         {
@@ -87,7 +87,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
         {
             var info = arg.BreakpointId.Split('/');
 
-            ScriptsByUrl[info[0]].BreakPoints[info[1]].IsEnabled = false;
+            ScriptsByUrl[info[0]].BreakableScriptPoint[info[1]].IsBreakPointSet = false;
 
             return Task.FromResult<ICommandResponse<RemoveBreakpointCommand>>(new RemoveBreakpointCommandResponse());
         }
@@ -104,7 +104,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
                 var closestBreakpoint = GetClosetBreakPoint(script, arg.LineNumber, arg.ColumnNumber);
 
-                closestBreakpoint.IsEnabled = true;
+                closestBreakpoint.IsBreakPointSet = true;
 
                 result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
                 result.Locations = new[] { closestBreakpoint.AsLocation(script) };
@@ -113,14 +113,14 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             });
         }
 
-        private BreakPoint GetClosetBreakPoint(ScriptInfo script, long lineNumber, long? columnNumber)
+        private BreakableScriptPoint GetClosetBreakPoint(ScriptInfo script, long lineNumber, long? columnNumber)
         {
 
-            BreakPoint closestBreakpoint = null;
+            BreakableScriptPoint closestBreakpoint = null;
             var closestLineDistance = long.MaxValue;
             var closestColumnDistance = long.MaxValue;
 
-            foreach (var breakPoint in script.BreakPoints.Values)
+            foreach (var breakPoint in script.BreakableScriptPoint.Values)
             {
                 var currentLineDistance = Math.Abs(breakPoint.Info.lineNumber - lineNumber);
                 var currentColumnDistance = columnNumber.HasValue ? Math.Abs(breakPoint.Info.columnNumber - columnNumber.Value) : breakPoint.Info.columnNumber;
@@ -145,7 +145,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
         private void Continue()
         {
-            this.ScriptsById.Values.SelectMany(_ => _.BreakPoints.Values).First(_ => _.IsBreaked).Continue();
+            this.ScriptsById.Values.SelectMany(_ => _.BreakableScriptPoint.Values).First(_ => _.IsBreaked).Continue();
         }
 
         private Task<ICommandResponse<PauseCommand>> PauseCommand(PauseCommand arg)
@@ -183,7 +183,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
                 var script = ScriptsById[arg.Start.ScriptId];
 
-                bool isIncluded(BreakPoint breakPoint)
+                bool isIncluded(BreakableScriptPoint breakPoint)
                 {
                     var afterStart = breakPoint.Info.lineNumber > arg.Start.LineNumber
                                 || (breakPoint.Info.lineNumber == arg.Start.LineNumber
@@ -195,7 +195,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
                     return afterStart && beforeEnd;
                 }
 
-                result.Locations = script.BreakPoints.Values
+                result.Locations = script.BreakableScriptPoint.Values
                     .Where(isIncluded)
                     .Select(_ => _.AsBreakLocation(script)).ToArray();
 

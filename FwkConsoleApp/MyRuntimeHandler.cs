@@ -37,14 +37,14 @@
 
         private string[] GetBreakPoints()
         {
-            return script.BreakPoints.Keys.ToArray();
+            return script.BreakableScriptPoint.Keys.ToArray();
         }
 
         private bool EnableBreakPoint(string breakPointName)
         {
-            if(script.BreakPoints.TryGetValue(breakPointName, out var breakPoint))
+            if(script.BreakableScriptPoint.TryGetValue(breakPointName, out var breakPoint))
             {
-                return breakPoint.IsEnabled = true;        
+                return breakPoint.IsBreakPointSet = true;        
             }
 
             return false;
@@ -52,9 +52,9 @@
 
         private bool DisableBreakPoint(string breakPointName)
         {
-            if (script.BreakPoints.TryGetValue(breakPointName, out var breakPoint))
+            if (script.BreakableScriptPoint.TryGetValue(breakPointName, out var breakPoint))
             {
-                return !(breakPoint.IsEnabled = false);
+                return !(breakPoint.IsBreakPointSet = false);
             }
 
             return false;

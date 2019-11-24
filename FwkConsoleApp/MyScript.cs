@@ -10,8 +10,8 @@
                 "  sleep(1000);\n" +
                 "  console.log(i);\n" +
                 "}", "Main",
-                    new BreakPoint("sleep", (2, 2, "sleep")),
-                    new BreakPoint("log", (3, 11, "log"))
+                    new BreakableScriptPoint("sleep", (2, 2, "sleep")),
+                    new BreakableScriptPoint("log", (3, 11, "log"))
                 )
         {
         }

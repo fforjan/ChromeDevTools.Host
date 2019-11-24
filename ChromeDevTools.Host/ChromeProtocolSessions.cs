@@ -46,11 +46,11 @@
             {
                 var runtimeHanlder = session.GetService<RuntimeHandler>();
                 var script = debugger.ScriptsByUrl[scriptUrl];
-                var breakPoint = script.BreakPoints[breakPointName];
+                var breakPoint = script.BreakableScriptPoint[breakPointName];
 
                 if (debugger.BreakOn == DebuggerHandler.AnyBreakpoint
                     || debugger.BreakOn == breakPoint
-                    || breakPoint.IsEnabled)
+                    || breakPoint.IsBreakPointSet)
                 {
                     debugger.BreakOn = null;
 

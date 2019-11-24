@@ -10,6 +10,7 @@
     using ChromeDevTools.Host;
     using ChromeDevTools.Host.AspNetCore;
     using ChromeDevTools.Host.Handlers;
+    using ChromeDevTools.Host.Handlers.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;

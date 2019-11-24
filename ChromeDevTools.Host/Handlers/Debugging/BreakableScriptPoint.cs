@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using ChromeDevTools.Host.Runtime.Debugger;
 
-    public class BreakPoint
+    public class BreakableScriptPoint
     {
         public (int lineNumber, int columnNumber, string functionName) Info { get; }
 
@@ -13,7 +13,7 @@
 
         private TaskCompletionSource<bool> breakPointTask;
 
-        public BreakPoint(string name, (int lineNumber, int columnNumber, string functionName) info)
+        public BreakableScriptPoint(string name, (int lineNumber, int columnNumber, string functionName) info)
         {
             Name = name;
             this.Info = info;
@@ -21,7 +21,7 @@
 
         public string Name { get; }
 
-        public bool IsEnabled
+        public bool IsBreakPointSet
         {
             get;
             set;
@@ -90,7 +90,12 @@
 
         public string GetContextId(ScriptInfo relatedScript)
         {
-            return relatedScript.Url + "/" + Name + ":1";
+            return GetBreakPointName(relatedScript) + ":1";
+        }
+
+        public string GetBreakPointName(ScriptInfo relatedScript)
+        {
+            return relatedScript.Url + "/" + Name ;
         }
 
         public Location AsLocation(ScriptInfo relatedScript)
