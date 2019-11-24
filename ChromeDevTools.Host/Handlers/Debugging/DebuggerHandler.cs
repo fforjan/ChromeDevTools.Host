@@ -120,11 +120,11 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             });
         }
 
-        private async Task<ICommandResponse<ResumeCommand>> ResumeCommand(ResumeCommand arg)
+        private Task<ICommandResponse<ResumeCommand>> ResumeCommand(ResumeCommand arg)
         {
-            await this.ScriptsById.Values.SelectMany(_ => _.BreakPoints.Values).First(_ => _.IsBreaked).Continue();
+            this.ScriptsById.Values.SelectMany(_ => _.BreakPoints.Values).First(_ => _.IsBreaked).Continue();
 
-            return new ResumeCommandResponse();
+            return Task.FromResult < ICommandResponse < ResumeCommand >>( new ResumeCommandResponse());
         }
 
         private Task<ICommandResponse<GetPossibleBreakpointsCommand>> GetPossibleBreakpointsCommand(GetPossibleBreakpointsCommand arg)

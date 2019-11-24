@@ -3,6 +3,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
     using ChromeDevTools.Host.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,8 +14,15 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 
         private PropertyDescriptorCreator propertyDescriptorCreator = new PropertyDescriptorCreator();
 
-        public object LocalObject { get; set; }
-      
+        private Dictionary<string, object> localObjects = new Dictionary<string, object>();
+
+        public IDisposable AllocateLocalObject(string id, object context)
+        {
+            localObjects[id] = context;
+            return new LocalContextDisposable(this, id);
+        }
+
+
         public virtual void Register(ChromeProtocolSession session)
         {
             this.IsEnable = false;
@@ -59,20 +67,19 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             return Task.Run<ICommandResponse<GetPropertiesCommand>>(() =>
             {
                 var result = new GetPropertiesCommandResponse();
-                if (command.ObjectId != nameof(LocalObject) || LocalObject == null)
+                if(this.localObjects.TryGetValue(command.ObjectId, out var localObject))
                 {
-                    result.Result = Array.Empty<PropertyDescriptor>();
+                    result.Result = propertyDescriptorCreator.GetProperties(localObject).ToArray();        
                 }
                 else
                 {
-                    result.Result = propertyDescriptorCreator.GetProperties(LocalObject).ToArray();
-
+                    result.Result = Array.Empty<PropertyDescriptor>();
                 }
                 return result;
             });
         }
 
-        
+
 
         public Task<ICommandResponse<DisableCommand>> DisableCommand(DisableCommand command)
         {
@@ -143,8 +150,8 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             {
                 return Task.CompletedTask;
             }
-        } 
-        
+        }
+
         public Task Debug(string logEntry)
         {
             if (this.IsEnable)
@@ -175,6 +182,20 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 
         public int Context { get { return 1; } }
 
+        private class LocalContextDisposable : IDisposable
+        {
+            private readonly RuntimeHandler handler;
+            private readonly string name;
 
+            public LocalContextDisposable(RuntimeHandler handler, string name)
+            {
+                this.handler = handler;
+                this.name = name;
+            }
+            public void Dispose()
+            {
+                this.handler.localObjects.Remove(name);
+            }
+        }
     }
 }

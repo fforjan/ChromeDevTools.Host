@@ -9,6 +9,8 @@
     {
         public (int lineNumber, int columnNumber, string functionName) Info { get; }
 
+        private object locker = new object();
+
         private TaskCompletionSource<bool> breakPointTask;
 
         public BreakPoint(string name, (int lineNumber, int columnNumber, string functionName) info)
@@ -27,32 +29,40 @@
 
         public bool IsBreaked { get { return this.breakPointTask != null; } }
 
-        public Task Continue()
+        public void Continue()
         {
-            var currentTask = breakPointTask;
-            breakPointTask = null;
-            currentTask.SetResult(true);
-
-            return currentTask.Task;
+            lock (locker)
+            {
+                var currentTask = breakPointTask;
+                breakPointTask = null;
+                currentTask?.SetResult(true);
+            }
         }
 
 
-        public Task GetBreakPointTask(CancellationToken cancellationToken, Action beforeBreak, Action afterBreak)
+        public Task GetBreakPointTask(CancellationToken cancellationToken, ScriptInfo relatedScript, Func<string,IDisposable> breakpointContext)
         {
             // if enabled, wait for it
             if (IsEnabled)
             {
-                if (breakPointTask == null)
+                lock (locker)
                 {
-                    this.breakPointTask = new TaskCompletionSource<bool>();
-                    cancellationToken.Register(() => this.Continue());
+                    if (breakPointTask == null)
+                    {
+                        this.breakPointTask = new TaskCompletionSource<bool>();
+                        cancellationToken.Register(this.Continue);
+                    }
+
+                    var context = breakpointContext?.Invoke(relatedScript.Url + "/" + Name + ":1");
+                    if (context != null)
+                    {
+                        breakPointTask.Task.ContinueWith((_) => context.Dispose());
+                    }
+
+                    this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
+
+                    return breakPointTask.Task;
                 }
-
-                beforeBreak();
-                this.BreakPointHit?.Invoke(this, new BreakPointHitEventArgs { BreakPoint = this });
-                breakPointTask.Task.ContinueWith((_) => afterBreak);
-
-                return breakPointTask.Task;
             }
 
             return Task.CompletedTask; 
@@ -82,7 +92,7 @@
                                 Type = "object",
                                 ClassName = "Object",
                                 Description = "Object",
-                                ObjectId = nameof(Runtime.RuntimeHandler.LocalObject)
+                                ObjectId = relatedScript.Url + "/" + Name + ":1"
                             }
                         }
                     }

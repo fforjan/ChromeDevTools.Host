@@ -7,33 +7,25 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 {
     public class PropertyDescriptorCreator
     {
-        public Dictionary<Type, Func<object, PropertyInfo, PropertyDescriptor>> creator;
-
-        public PropertyDescriptorCreator()
-        {
-            creator = new Dictionary<Type, Func<object, PropertyInfo, PropertyDescriptor>>
-            {
-                { typeof(string), this.GetStringProperty },
-                { typeof(float), this.GetNumberProperty },
-                { typeof(int), this.GetNumberProperty },
-                { typeof(long), this.GetNumberProperty },
-                { typeof(short), this.GetNumberProperty },
-                { typeof(double), this.GetNumberProperty },
-                { typeof(byte), this.GetNumberProperty },
-
-                { typeof(uint), this.GetNumberProperty },
-                { typeof(ulong), this.GetNumberProperty },
-                { typeof(ushort), this.GetNumberProperty }, 
-            };
-        }
-
+      
         public IEnumerable<PropertyDescriptor> GetProperties(object context)
         {
             foreach (var property in context.GetType().GetProperties())
             {
-                if (creator.TryGetValue(property.PropertyType, out var  propertyCreator))
+                if(property.PropertyType == typeof(string))
                 {
-                    yield return propertyCreator(context, property);
+                    yield return GetStringProperty(context, property);
+                }
+
+                PropertyDescriptor value = null;
+                try
+                {
+                    value = GetNumberProperty(context, property);
+                }
+                catch { }
+                if(value != null)
+                {
+                    yield return value;
                 }
             }
         }

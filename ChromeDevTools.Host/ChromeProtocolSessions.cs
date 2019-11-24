@@ -45,11 +45,13 @@
             if (debugger.IsEnable)
             {
                 var runtimeHanlder = session.GetService<RuntimeHandler>();
+                var script = debugger.ScriptsByUrl[scriptUrl];
+                var breakPoint = script.BreakPoints[breakPointName];
 
-                return debugger.ScriptsByUrl[scriptUrl].BreakPoints[breakPointName].GetBreakPointTask(
+                return breakPoint.GetBreakPointTask(
                     lastSessionDisposed.Token,
-                    () => { runtimeHanlder.LocalObject = context; },
-                    () => { runtimeHanlder.LocalObject = null; }
+                    script,
+                    context == null ?  (Func<string,IDisposable>)null : (string contextId) => runtimeHanlder.AllocateLocalObject(contextId, context)
                     );
             }
 
