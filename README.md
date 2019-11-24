@@ -13,7 +13,7 @@ You can now do the same with your application !
 - Logging support
 - Memory snapshot
 - Scripting
-- Debugging
+- Debugging [virtual scripts](Documentation/VirtualScript.md)
 
 # Demo
 
