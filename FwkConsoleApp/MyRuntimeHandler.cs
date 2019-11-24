@@ -1,6 +1,7 @@
 ﻿namespace FwkConsoleApp
 {
     using ChromeDevTools.Host.Handlers;
+    using ChromeDevTools.Host.Handlers.Debugging;
     using ChromeDevTools.Host.Handlers.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;
     using Jint;
@@ -13,9 +14,9 @@
     {
 
         private Engine engine;
-        private readonly MyScript script;
+        private readonly ScriptInfo script;
 
-        public MyRuntimeHandler(MyScript script)
+        public MyRuntimeHandler(ScriptInfo script)
         {
             this.script = script;
         }

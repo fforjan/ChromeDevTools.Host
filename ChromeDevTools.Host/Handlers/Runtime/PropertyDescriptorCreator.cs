@@ -45,6 +45,9 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 
         private PropertyDescriptor GetNumberProperty(object context, PropertyInfo info)
         {
+            var value = info.GetValue(context);
+            if(value == null) { return null; }
+
             return new PropertyDescriptor
             {
                 Configurable = false,
@@ -52,7 +55,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
                 IsOwn = true,
                 Writable = false,
                 Name = info.Name,
-                Value = RemoteObjectCreator.Create(Convert.ToDouble(info.GetValue(context)))
+                Value = RemoteObjectCreator.Create(Convert.ToDouble(value))
             };
         }
     }

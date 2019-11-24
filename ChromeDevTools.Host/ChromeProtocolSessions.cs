@@ -5,20 +5,44 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using ChromeDevTools.Host.Handlers.Debugging;
-    using ChromeDevTools.Host.Handlers.Runtime;
 
+    /// <summary>
+    /// Manage the overall set of sessions.
+    /// The provided methods are all concurrent-friendly.
+    /// </summary>
     public class ChromeProtocolSessions
     {
+        /// <summary>
+        /// Locker object for being concurrent-friendly
+        /// </summary>
         private readonly object locker = new object();
 
+        /// <summary>
+        /// Cancellation token source for <see cref="CancelOnLastSessionDisposed"/>.
+        /// </summary>
+        private CancellationTokenSource lastSessionDisposed = new CancellationTokenSource();
+
+        /// <summary>
+        /// List of active sessions.
+        /// </summary>
         private List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
 
+        /// <summary>
+        /// Get active sessions.
+        /// Note: it is preferable to use <see cref="ForEach(Func{ChromeProtocolSession, Task})"/> when executing actions on all sessions.
+        /// </summary>
         public IReadOnlyList<ChromeProtocolSession> Sessions
         {
             get => sessions;
         }
 
+        /// <summary>
+        /// Register a session.
+        /// The session is considered active up to the point the <see cref="IDisposable.Dispose"/>
+        /// method is call on the returned valud
+        /// </summary>
+        /// <param name="session">session to register as active</param>
+        /// <returns>disposable object.</returns>
         public IDisposable Register(ChromeProtocolSession session)
         {
             lock (locker)
@@ -29,52 +53,24 @@
             return new Dispose(this, session);
         }
 
+        /// <summary>
+        /// Apply action 
+        /// </summary>
+        /// <param name="chromeSessionAction"></param>
+        /// <returns></returns>
         public Task ForEach(Func<ChromeProtocolSession, Task> chromeSessionAction)
         {
             return Task.WhenAll(sessions.Select(chromeSessionAction));
-        }
+        }  
 
-        public Task BreakOn(string scriptUrl, string breakPointName, object context)
-        {
-            return Task.WhenAll(sessions.Select(_ => BreakOn(scriptUrl, breakPointName, _, context)));
-        }
-
-        private Task BreakOn(string scriptUrl, string breakPointName, ChromeProtocolSession session, object context)
-        {
-            var debugger = session.GetService<DebuggerHandler>();
-            if (debugger.IsEnable)
-            {
-                var runtimeHanlder = session.GetService<RuntimeHandler>();
-                var script = debugger.ScriptsByUrl[scriptUrl];
-                var breakPoint = script.BreakableScriptPoint[breakPointName];
-
-                if (debugger.BreakOn == DebuggerHandler.AnyBreakpoint
-                    || debugger.BreakOn == breakPoint
-                    || breakPoint.IsBreakPointSet)
-                {
-                    debugger.BreakOn = null;
-
-
-                    IDisposable localObjectContext = null;
-                    if (context != null)
-                    {
-                        localObjectContext = runtimeHanlder.AllocateLocalObject(breakPoint.GetContextId(script), context);
-                    }
-
-                    var task = breakPoint.GetBreakPointTask(lastSessionDisposed.Token);
-                    if (localObjectContext != null)
-                    {
-                        task.ContinueWith((_) => localObjectContext.Dispose());
-                    }
-
-                    return task;
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private CancellationTokenSource lastSessionDisposed = new CancellationTokenSource();
+      
+        /// <summary>
+        /// Cancellation token for current sessions.
+        /// This token will be in cancelled when the last session will be closed.
+        /// Note: the token will not be in cancelled state if there is no session.
+        /// It will be cancelled after one or more added sessions are closed.
+        /// </summary>
+        public  CancellationToken CancelOnLastSessionDisposed { get { return lastSessionDisposed.Token; } }
 
         private class Dispose : IDisposable
         {

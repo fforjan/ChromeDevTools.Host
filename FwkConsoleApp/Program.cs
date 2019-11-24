@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ChromeDevTools.Host;
 using ChromeDevTools.Host.FwkSelfHost;
 using ChromeDevTools.Host.Handlers;
+using ChromeDevTools.Host.Handlers.Debugging;
 using ChromeDevTools.Host.Handlers.Runtime;
 
 namespace FwkConsoleApp
@@ -66,13 +67,16 @@ namespace FwkConsoleApp
             int i = 0;
             while (true)
             {
-                await sessions.BreakOn("Main", "sleep", null);
+                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.SleepMethod, null);
                 await Task.Delay(1000);
 
-                await sessions.BreakOn("Main", "Fibonaci", new { i });
-                await Fibonaci(sessions, i);
+                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.FibonaciMethod, new { i });
+                var fibonaci = await Fibonaci(sessions, i);
 
-                await sessions.BreakOn("Main", "log", new { i });
+                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.LogMethod, new { i });
+
+                await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Fibonaci({i}) = {fibonaci}"));
+
                 if (echo)
                 {
                     switch (i % 4)
@@ -90,15 +94,32 @@ namespace FwkConsoleApp
 
         public static async Task<int> Fibonaci(ChromeProtocolSessions sessions, int n)
         {
-            var context = new { n };
-            await sessions.BreakOn("Fibonaci", "f0", context);
-            if(n ==0) { return 0; }
+            var context = new FibonaciContext
+            {
+                n = n
+            };
 
-            await sessions.BreakOn("Fibonaci", "f1", context);
-            if (n == 1) { return 1; }
+            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.F0, context);
+            if(context.n ==0) { return 0; }
 
-            await sessions.BreakOn("Fibonaci", "fsum", context);
-            return await Fibonaci(sessions, n - 1) + await Fibonaci(sessions, n - 2);
+            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.F1, context);
+            if (context.n == 1) { return 1; }
+
+            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FN1Rec, context);
+            context.NMinus1 = await Fibonaci(sessions, n - 1);
+
+            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FN2Rec, context);
+            context.NMinus2 = await Fibonaci(sessions, n - 2);
+
+            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FNSum, context);         
+            return context.NMinus1.Value + context.NMinus2.Value;
+        }
+
+        public struct FibonaciContext
+        {
+            public int n;
+            public int? NMinus1;
+            public int? NMinus2;
         }
     }
 }

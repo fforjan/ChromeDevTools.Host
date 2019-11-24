@@ -161,7 +161,7 @@ namespace ChromeDevTools.Host
 
         public async Task Process(CancellationToken cancellationToken)
         {
-            // we're using a 4 buffer
+            // we're using a 4k buffer
             try
             {
                 var buffer = new byte[1024 * 4];

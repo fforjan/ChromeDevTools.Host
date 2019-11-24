@@ -4,18 +4,19 @@ using System.Net.WebSockets;
 using System.Reflection;
 using ChromeDevTools.Host;
 using ChromeDevTools.Host.Handlers;
+using FwkConsoleApp.Scripts;
 
 namespace FwkConsoleApp
 {
     internal class SingleSessionProvider : IChromeSessionProvider
     {
         private readonly Guid SingleSessiongId = Guid.NewGuid();
-        private MyScript myScript = new MyScript();
-        private Fibonaci fibonaci = new Fibonaci();
+        private MainScript mainScript = new MainScript();
+        private FibonaciScript fibonaci = new FibonaciScript();
 
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {
-            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(myScript), new MyDebuggerHandler(myScript, fibonaci), new ProfilerHandler(), new MyHeapProfilerHandler());
+            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(mainScript), new MyDebuggerHandler(mainScript, fibonaci), new ProfilerHandler(), new MyHeapProfilerHandler());
         }
 
         public ChromeSessionProtocolVersion GetProtocolVersion()
