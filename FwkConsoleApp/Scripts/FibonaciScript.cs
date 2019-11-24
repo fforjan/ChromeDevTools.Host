@@ -2,6 +2,9 @@
 {
     using ChromeDevTools.Host.Handlers.Debugging;
 
+    /// <summary>
+    /// Breakable statement definition for fibonaci method
+    /// </summary>
     public static class Fibonaci
     {
         public const string F0 = nameof(F0);

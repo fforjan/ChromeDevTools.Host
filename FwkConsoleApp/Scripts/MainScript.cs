@@ -2,6 +2,10 @@
 {
     using ChromeDevTools.Host.Handlers.Debugging;
 
+
+    /// <summary>
+    /// Breakable statement definition for main method
+    /// </summary>
     public static class Main
     {
         public const string SleepMethod = nameof(SleepMethod);

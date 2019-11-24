@@ -1,22 +1,22 @@
-﻿using System;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Reflection;
-using ChromeDevTools.Host;
-using ChromeDevTools.Host.Handlers;
-using FwkConsoleApp.Scripts;
-
-namespace FwkConsoleApp
+﻿namespace FwkConsoleApp
 {
+    using System;
+    using System.Net.WebSockets;
+    using System.Reflection;
+    using ChromeDevTools.Host;
+    using ChromeDevTools.Host.Handlers;
+    using ChromeDevTools.Host.Handlers.Debugging;
+    using FwkConsoleApp.Scripts;
+
     internal class SingleSessionProvider : IChromeSessionProvider
     {
         private readonly Guid SingleSessiongId = Guid.NewGuid();
-        private MainScript mainScript = new MainScript();
-        private FibonaciScript fibonaci = new FibonaciScript();
+        private readonly MainScript mainScript = new MainScript();
+        private readonly FibonaciScript fibonaci = new FibonaciScript();
 
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {
-            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(mainScript), new MyDebuggerHandler(mainScript, fibonaci), new ProfilerHandler(), new MyHeapProfilerHandler());
+            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(mainScript), new DebuggerHandler(mainScript, fibonaci), new ProfilerHandler(), new MyHeapProfilerHandler());
         }
 
         public ChromeSessionProtocolVersion GetProtocolVersion()

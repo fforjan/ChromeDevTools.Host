@@ -22,4 +22,7 @@
   <ItemGroup>
     <Folder Include="Scripts\" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="MyDebuggerHandler.cs" />
+  </ItemGroup>
 </Project>

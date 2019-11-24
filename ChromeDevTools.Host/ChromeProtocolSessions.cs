@@ -60,6 +60,12 @@
         /// <returns></returns>
         public Task ForEach(Func<ChromeProtocolSession, Task> chromeSessionAction)
         {
+            var currentSessions = sessions;
+            if(currentSessions.Count == 0)
+            {
+                return Task.CompletedTask; // avoid time spend on when all construction
+            }
+
             return Task.WhenAll(sessions.Select(chromeSessionAction));
         }  
 

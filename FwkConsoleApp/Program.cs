@@ -114,9 +114,9 @@
 
         public struct FibonaciContext
         {
-            public int n { get; set; }
-            public int NMinus1 { get; set; }
-            public int NMinus2 { get; set; }
+            public int n;
+            public int NMinus1;
+            public int NMinus2;
         }
     }
 }

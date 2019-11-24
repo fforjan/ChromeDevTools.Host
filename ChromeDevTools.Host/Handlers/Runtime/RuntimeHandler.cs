@@ -16,15 +16,22 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 
         private Dictionary<string, List<object>> localObjects = new Dictionary<string, List<object>>();
 
-        public IDisposable AllocateLocalObject(string id, object context)
+        /// <summary>
+        /// allocate a new context for a breakable point.
+        /// Note: breakable point can be recursive if required
+        /// </summary>
+        /// <param name="breakablePointName"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public IDisposable AllocateLocalObject(string breakablePointName, object context)
         {
-            if(!localObjects.ContainsKey(id))
+            if(!localObjects.ContainsKey(breakablePointName))
             {
-                localObjects[id] = new List<object>();
+                localObjects[breakablePointName] = new List<object>();
             }
 
-            localObjects[id].Add(context);
-            return new LocalContextDisposable(this, id);
+            localObjects[breakablePointName].Add(context);
+            return new LocalContextDisposable(this, breakablePointName);
         }
 
 
@@ -32,17 +39,21 @@ namespace ChromeDevTools.Host.Handlers.Runtime
         {
             this.IsEnable = false;
 
-
             this.session = session;
+
             session.RegisterCommandHandler<EnableCommand>(EnableCommand);
             session.RegisterCommandHandler<DisableCommand>(DisableCommand);
+
             session.RegisterCommandHandler<GetHeapUsageCommand>(GetHeapUsageCommand);
+
             session.RegisterCommandHandler<EvaluateCommand>(EvaluateCommand);
 
             session.RegisterCommandHandler<GetPropertiesCommand>(GetPropertiesCommand);
         }
 
         public virtual bool IsEnable { get; protected set; }
+
+        #region Commands
 
         public async Task<ICommandResponse<EnableCommand>> EnableCommand(EnableCommand command)
         {
@@ -72,9 +83,9 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             return Task.Run<ICommandResponse<GetPropertiesCommand>>(() =>
             {
                 var result = new GetPropertiesCommandResponse();
-                if(this.localObjects.TryGetValue(command.ObjectId, out var localObject))
+                if (this.localObjects.TryGetValue(command.ObjectId, out var localObject))
                 {
-                    result.Result = propertyDescriptorCreator.GetProperties(localObject.Last()).ToArray();        
+                    result.Result = propertyDescriptorCreator.GetObjectDescriptors(localObject.Last()).ToArray();
                 }
                 else
                 {
@@ -83,8 +94,6 @@ namespace ChromeDevTools.Host.Handlers.Runtime
                 return result;
             });
         }
-
-
 
         public Task<ICommandResponse<DisableCommand>> DisableCommand(DisableCommand command)
         {
@@ -110,6 +119,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
                 Result = Evaluate(command.Expression)
             });
         }
+        #endregion
 
         protected virtual RemoteObject Evaluate(string expr)
         {
@@ -120,6 +130,8 @@ namespace ChromeDevTools.Host.Handlers.Runtime
         {
             return (Process.GetCurrentProcess().PrivateMemorySize64, GC.GetTotalMemory(false));
         }
+
+        #region Logging
 
         public Task Log(string logEntry)
         {
@@ -185,6 +197,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             return logEvent;
         }
 
+        #endregion
         public int Context { get { return 1; } }
 
         private class LocalContextDisposable : IDisposable

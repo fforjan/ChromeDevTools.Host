@@ -31,6 +31,7 @@
 
                 .SetValue("getValueAsInterface", new Func<int, Program.IPublicValue>(Program.GetValueAsInterface))
 
+                // allow to interface with breakpoint on the main script
                 .SetValue("enableBreakpoint", new Func<string, bool>(EnableBreakPoint))
                 .SetValue("disableBreakpoint", new Func<string, bool>(DisableBreakPoint))
                 .SetValue("getBreakpoints", new Func<string[]>(GetBreakPoints));

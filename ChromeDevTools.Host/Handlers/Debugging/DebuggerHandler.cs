@@ -22,10 +22,15 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
         public virtual bool IsEnable { get; protected set; }
 
-        public DebuggerHandler()
+        public DebuggerHandler(params ScriptInfo[] scripts)
         {
             scriptsById = new Dictionary<string, ScriptInfo>();
             scriptsByUrl = new Dictionary<string, ScriptInfo>();
+
+            foreach (var script in scripts)
+            {
+                this.RegisterScripts(script);
+            }
         }
 
         public BreakableScriptPoint BreakOn { get; set; }
