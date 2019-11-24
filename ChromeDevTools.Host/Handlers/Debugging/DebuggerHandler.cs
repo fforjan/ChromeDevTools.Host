@@ -98,7 +98,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
             {
                 var result = new SetBreakpointByUrlCommandResponse();
 
-                var url = arg.Url ?? arg.UrlRegex.Trim('|');
+                var url = arg.Url ?? arg.UrlRegex.Split('|')[1]; // FIXME - implement javascript regexp
 
                 var script = this.ScriptsByUrl[url];
 

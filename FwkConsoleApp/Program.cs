@@ -68,9 +68,13 @@ namespace FwkConsoleApp
             {
                 await sessions.BreakOn("Main", "sleep", null);
                 await Task.Delay(1000);
+
+                await sessions.BreakOn("Main", "Fibonaci", new { i });
+                await Fibonaci(sessions, i);
+
+                await sessions.BreakOn("Main", "log", new { i });
                 if (echo)
                 {
-                    await sessions.BreakOn("Main", "log", new { i });
                     switch (i % 4)
                     {
                         case 0: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;
@@ -82,6 +86,19 @@ namespace FwkConsoleApp
 
                 i++;
             }
+        }
+
+        public static async Task<int> Fibonaci(ChromeProtocolSessions sessions, int n)
+        {
+            var context = new { n };
+            await sessions.BreakOn("Fibonaci", "f0", context);
+            if(n ==0) { return 0; }
+
+            await sessions.BreakOn("Fibonaci", "f1", context);
+            if (n == 1) { return 1; }
+
+            await sessions.BreakOn("Fibonaci", "fsum", context);
+            return await Fibonaci(sessions, n - 1) + await Fibonaci(sessions, n - 2);
         }
     }
 }

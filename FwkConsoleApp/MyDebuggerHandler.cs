@@ -16,9 +16,10 @@
             }
         }
 
-        public MyDebuggerHandler(MyScript script)
+        public MyDebuggerHandler(MyScript script, Fibonaci fibonaci)
         {
-            this.RegisterScripts(script);            
+            this.RegisterScripts(script);
+            this.RegisterScripts(fibonaci);
         }
 
         public override void Register(ChromeProtocolSession session)
