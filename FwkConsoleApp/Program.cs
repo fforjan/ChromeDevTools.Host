@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using ChromeDevTools.Host;
-using ChromeDevTools.Host.FwkSelfHost;
-using ChromeDevTools.Host.Handlers;
-using ChromeDevTools.Host.Handlers.Debugging;
-using ChromeDevTools.Host.Handlers.Runtime;
-
-namespace FwkConsoleApp
+﻿namespace FwkConsoleApp
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using ChromeDevTools.Host;
+    using ChromeDevTools.Host.FwkSelfHost;
+    using ChromeDevTools.Host.Handlers.Debugging;
+    using ChromeDevTools.Host.Handlers.Runtime;
 
     class Program
     {
@@ -96,7 +91,9 @@ namespace FwkConsoleApp
         {
             var context = new FibonaciContext
             {
-                n = n
+                n = n,
+                NMinus1 = -1,
+                NMinus2 = -2
             };
 
             await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.F0, context);
@@ -112,14 +109,14 @@ namespace FwkConsoleApp
             context.NMinus2 = await Fibonaci(sessions, n - 2);
 
             await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FNSum, context);         
-            return context.NMinus1.Value + context.NMinus2.Value;
+            return context.NMinus1 + context.NMinus2;
         }
 
         public struct FibonaciContext
         {
-            public int n;
-            public int? NMinus1;
-            public int? NMinus2;
+            public int n { get; set; }
+            public int NMinus1 { get; set; }
+            public int NMinus2 { get; set; }
         }
     }
 }

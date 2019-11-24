@@ -14,11 +14,16 @@ namespace ChromeDevTools.Host.Handlers.Runtime
 
         private PropertyDescriptorCreator propertyDescriptorCreator = new PropertyDescriptorCreator();
 
-        private Dictionary<string, object> localObjects = new Dictionary<string, object>();
+        private Dictionary<string, List<object>> localObjects = new Dictionary<string, List<object>>();
 
         public IDisposable AllocateLocalObject(string id, object context)
         {
-            localObjects[id] = context;
+            if(!localObjects.ContainsKey(id))
+            {
+                localObjects[id] = new List<object>();
+            }
+
+            localObjects[id].Add(context);
             return new LocalContextDisposable(this, id);
         }
 
@@ -69,7 +74,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
                 var result = new GetPropertiesCommandResponse();
                 if(this.localObjects.TryGetValue(command.ObjectId, out var localObject))
                 {
-                    result.Result = propertyDescriptorCreator.GetProperties(localObject).ToArray();        
+                    result.Result = propertyDescriptorCreator.GetProperties(localObject.Last()).ToArray();        
                 }
                 else
                 {
@@ -194,7 +199,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             }
             public void Dispose()
             {
-                this.handler.localObjects.Remove(name);
+                this.handler.localObjects[name].RemoveAt(this.handler.localObjects[name].Count - 1 );
             }
         }
     }

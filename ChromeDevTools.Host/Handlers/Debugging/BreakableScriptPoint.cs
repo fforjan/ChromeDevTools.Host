@@ -12,7 +12,6 @@
         /// </summary>
         public static readonly BreakableScriptPoint Any = new BreakableScriptPoint("Any", (-1, -1, "Any"));
 
-
         public (int lineNumber, int columnNumber, string functionName) Info { get; }
 
         private object locker = new object();
