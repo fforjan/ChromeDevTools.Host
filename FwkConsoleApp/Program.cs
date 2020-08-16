@@ -76,10 +76,10 @@
                 {
                     switch (i % 4)
                     {
-                        case 0: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Ticks : <message> {i}")); break;
-                        case 1: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Warning($"Ticks : <warning> {i}")); break;
-                        case 2: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Error($"Ticks : <error> {i}")); break;
-                        case 3: await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Debug($"Ticks : <debug> {i}")); break;
+                        case 0: await sessions.Log($"Ticks : <message> {i}"); break;
+                        case 1: await sessions.Warning($"Ticks : <warning> {i}"); break;
+                        case 2: await sessions.Error($"Ticks : <error> {i}"); break;
+                        case 3: await sessions.Debug($"Ticks : <debug> {i}"); break;
                     }
                 }
 

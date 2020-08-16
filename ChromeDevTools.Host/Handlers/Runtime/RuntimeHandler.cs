@@ -25,7 +25,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
         /// <returns></returns>
         public IDisposable AllocateLocalObject(string breakablePointName, object context)
         {
-            if(!localObjects.ContainsKey(breakablePointName))
+            if (!localObjects.ContainsKey(breakablePointName))
             {
                 localObjects[breakablePointName] = new List<object>();
             }
@@ -212,7 +212,7 @@ namespace ChromeDevTools.Host.Handlers.Runtime
             }
             public void Dispose()
             {
-                this.handler.localObjects[name].RemoveAt(this.handler.localObjects[name].Count - 1 );
+                this.handler.localObjects[name].RemoveAt(this.handler.localObjects[name].Count - 1);
             }
         }
     }

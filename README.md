@@ -10,9 +10,9 @@ the network activities or the javascript objects.
 You can now do the same with your application !
 
 # Supported feature
-- Logging support
-- Memory snapshot
-- Scripting
+- [Logging support](Documentation/Logging.md)
+- [Memory analysis](Documentation/MemoryAnalysis.md)
+- [Scripting](Documentation/Scripting.md)
 - Debugging [virtual scripts](Documentation/VirtualScript.md)
 
 # Demo

@@ -22,11 +22,11 @@
                 "   if(n == 1) return 1;\n" +
                 "   return Fibonaci(n-1) + Fibonaci(n-2);\n" +
                 "}", nameof(Fibonaci),
-                    new BreakableScriptPoint(Fibonaci.F0, (1, 3, "f0")),
-                    new BreakableScriptPoint(Fibonaci.F1, (2, 3, "f1")),
-                    new BreakableScriptPoint(Fibonaci.FN1Rec, (3, 10, "FN1")),
-                    new BreakableScriptPoint(Fibonaci.FN2Rec, (3, 26, "FN2")),
-                    new BreakableScriptPoint(Fibonaci.FNSum, (3, 3, "fsum"))
+                    new BreakableScriptPoint(Fibonaci.F0, (1, 3, nameof(Fibonaci))),
+                    new BreakableScriptPoint(Fibonaci.F1, (2, 3, nameof(Fibonaci))),
+                    new BreakableScriptPoint(Fibonaci.FN1Rec, (3, 10, nameof(Fibonaci))),
+                    new BreakableScriptPoint(Fibonaci.FN2Rec, (3, 26, nameof(Fibonaci))),
+                    new BreakableScriptPoint(Fibonaci.FNSum, (3, 3, nameof(Fibonaci)))
                 )
         {
         }
