@@ -5,4 +5,8 @@
 		<Description>Embed the Chrome Dev protocol into your own C# application</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <LangVersion>11.0</LangVersion>
+    </PropertyGroup>
 </Project>
