@@ -9,15 +9,14 @@
     using System.Threading.Tasks;
     using ChromeDevTools.Host;
     using ChromeDevTools.Host.AspNetCore;
-    using ChromeDevTools.Host.Handlers;
     using ChromeDevTools.Host.Handlers.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Logging.Debug;
+    using Microsoft.Extensions.Hosting;
 
     public class Startup
     {
@@ -37,7 +36,7 @@
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -46,13 +45,7 @@
 
          
             #region UseWebSocket
-            var webSocketOptions = new WebSocketOptions() 
-            {
-                KeepAliveInterval = TimeSpan.FromSeconds(120),
-                ReceiveBufferSize = 4 * 1024
-            };
-
-            app.UseWebSockets(webSocketOptions);
+            app.UseWebSockets();
             #endregion
 
             #region AcceptWebSocket
