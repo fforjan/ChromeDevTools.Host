@@ -22,14 +22,14 @@
             echo = true;
         }
 
-        public static int[] GetValues(int maxNumer)
+        public static int[] GetValues(int maxNumber)
         {
-            return Enumerable.Range(0, maxNumer).ToArray();
+            return Enumerable.Range(0, maxNumber).ToArray();
         }
 
-        public static IEnumerable<IPublicValue> GetValuesAsInterface(int maxNumer)
+        public static IEnumerable<IPublicValue> GetValuesAsInterface(int maxNumber)
         {
-                return Enumerable.Range(0, maxNumer).Select(_ => new PublicValues { Value = _ });
+                return Enumerable.Range(0, maxNumber).Select(_ => new PublicValues { Value = _ });
         }
 
         public static IPublicValue GetValueAsInterface(int number)
@@ -65,12 +65,12 @@
                 await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.SleepMethod, null);
                 await Task.Delay(1000);
 
-                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.FibonaciMethod, new { i });
-                var fibonaci = await Fibonaci(sessions, i);
+                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.FibonacciMethod, new { i });
+                var fibonacci = await Fibonacci(sessions, i);
 
                 await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.LogMethod, new { i });
 
-                await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Fibonaci({i}) = {fibonaci}"));
+                await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Fibonacci({i}) = {fibonacci}"));
 
                 if (echo)
                 {
@@ -87,32 +87,32 @@
             }
         }
 
-        public static async Task<int> Fibonaci(ChromeProtocolSessions sessions, int n)
+        public static async Task<int> Fibonacci(ChromeProtocolSessions sessions, int n)
         {
-            var context = new FibonaciContext
+            var context = new FibonacciContext
             {
                 n = n,
                 NMinus1 = -1,
                 NMinus2 = -2
             };
 
-            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.F0, context);
+            await sessions.BreakOn(nameof(Scripts.Fibonacci), Scripts.Fibonacci.F0, context);
             if(context.n ==0) { return 0; }
 
-            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.F1, context);
+            await sessions.BreakOn(nameof(Scripts.Fibonacci), Scripts.Fibonacci.F1, context);
             if (context.n == 1) { return 1; }
 
-            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FN1Rec, context);
-            context.NMinus1 = await Fibonaci(sessions, n - 1);
+            await sessions.BreakOn(nameof(Scripts.Fibonacci), Scripts.Fibonacci.FN1Rec, context);
+            context.NMinus1 = await Fibonacci(sessions, n - 1);
 
-            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FN2Rec, context);
-            context.NMinus2 = await Fibonaci(sessions, n - 2);
+            await sessions.BreakOn(nameof(Scripts.Fibonacci), Scripts.Fibonacci.FN2Rec, context);
+            context.NMinus2 = await Fibonacci(sessions, n - 2);
 
-            await sessions.BreakOn(nameof(Scripts.Fibonaci), Scripts.Fibonaci.FNSum, context);         
+            await sessions.BreakOn(nameof(Scripts.Fibonacci), Scripts.Fibonacci.FNSum, context);         
             return context.NMinus1 + context.NMinus2;
         }
 
-        public struct FibonaciContext
+        public struct FibonacciContext
         {
             public int n;
             public int NMinus1;

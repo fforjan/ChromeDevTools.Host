@@ -1,6 +1,5 @@
 ﻿namespace FwkConsoleApp
 {
-    using ChromeDevTools.Host.Handlers;
     using ChromeDevTools.Host.Handlers.Debugging;
     using ChromeDevTools.Host.Handlers.Runtime;
     using ChromeDevTools.Host.Runtime.Runtime;

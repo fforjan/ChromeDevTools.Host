@@ -10,13 +10,13 @@
 
     internal class SingleSessionProvider : IChromeSessionProvider
     {
-        private readonly Guid SingleSessiongId = Guid.NewGuid();
+        private readonly Guid SingleSessionId = Guid.NewGuid();
         private readonly MainScript mainScript = new MainScript();
-        private readonly FibonaciScript fibonaci = new FibonaciScript();
+        private readonly FibonacciScript fibonacci = new FibonacciScript();
 
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {
-            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(mainScript), new DebuggerHandler(mainScript, fibonaci), new ProfilerHandler(), new MyHeapProfilerHandler());
+            return new ChromeProtocolSession(webSocket, new MyRuntimeHandler(mainScript), new DebuggerHandler(mainScript, fibonacci), new ProfilerHandler(), new MyHeapProfilerHandler());
         }
 
         public ChromeSessionProtocolVersion GetProtocolVersion()
@@ -31,7 +31,7 @@
                                  "sample application",
                                 "sample command line application",
                                 "https://scontent-lax3-2.xx.fbcdn.net/v/t31.0-8/26850424_10215610615764193_3403737823383610422_o.jpg?_nc_cat=105&_nc_oc=AQmrv1vPT2ln4k0aEVP5lols-Jabc-VynxvBqV11LSLI7rma9_7-iRSwuLOcx2EVzALcoBotSdD76ryX_JQC42Di&_nc_ht=scontent-lax3-2.xx&oh=a0881f639de78a72d7f550a188ba4aa6&oe=5E204509",
-                                SingleSessiongId
+                                SingleSessionId
                             )};
         }
     }
