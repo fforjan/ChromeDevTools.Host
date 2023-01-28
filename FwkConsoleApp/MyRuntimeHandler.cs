@@ -76,9 +76,7 @@
 
             try
             {
-                engine = engine.Execute(expr);
-
-                return RemoteObjectCreator.Create(engine.GetCompletionValue().ToString());                
+                return RemoteObjectCreator.Create(engine.Evaluate(expr).ToObject().ToString());                
             }
             catch (JavaScriptException e)
             {
