@@ -30,4 +30,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: FwkConsoleApp
-        path: FwkConsoleApp/bin/Release
+        path: samples/FwkConsoleApp/bin/Release
