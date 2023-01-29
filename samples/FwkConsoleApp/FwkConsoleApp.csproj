@@ -11,8 +11,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>    
   <ItemGroup>
-    <ProjectReference Include="..\ChromeDevTools.Host\ChromeDevTools.Host.csproj" />
-    <ProjectReference Include="..\ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj" />
+    <ProjectReference Include="..\..\ChromeDevTools.Host\ChromeDevTools.Host.csproj" />
+    <ProjectReference Include="..\..\ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="output.heapsnapshot">

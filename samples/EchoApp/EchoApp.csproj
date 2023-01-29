@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ChromeDevTools.Host.AspNetCore\ChromeDevTools.Host.AspNetCore.csproj">
+    <ProjectReference Include="..\..\ChromeDevTools.Host.AspNetCore\ChromeDevTools.Host.AspNetCore.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
