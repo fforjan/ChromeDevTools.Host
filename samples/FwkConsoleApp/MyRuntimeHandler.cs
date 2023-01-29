@@ -11,7 +11,6 @@
 
     public class MyRuntimeHandler : RuntimeHandler
     {
-
         private Engine engine;
         private readonly ScriptInfo script;
 
@@ -45,7 +44,7 @@
         {
             if(script.BreakableScriptPoint.TryGetValue(breakPointName, out var breakPoint))
             {
-                return breakPoint.IsBreakPointSet = true;        
+                return breakPoint.IsBreakPointSet = true;
             }
 
             return false;
@@ -63,10 +62,8 @@
 
         protected override RemoteObject Evaluate(string expr)
         {
-            if (engine == null)
-            {
-                engine = CreateEngine();
-            }
+            engine ??= CreateEngine();
+            
             if ("cls()" == expr.Trim())
             {
                 engine = CreateEngine();
@@ -75,11 +72,11 @@
 
             try
             {
-                return RemoteObjectCreator.Create(engine.Evaluate(expr).ToObject().ToString());                
+                return RemoteObjectCreator.Create(engine.Evaluate(expr).ToObject().ToString());
             }
             catch (JavaScriptException e)
             {
-                return RemoteObjectCreator.Create(e.Message);            
+                return RemoteObjectCreator.Create(e.Message);
             }
         }
     }

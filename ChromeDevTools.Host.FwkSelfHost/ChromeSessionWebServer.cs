@@ -7,8 +7,6 @@
     using System.Threading.Tasks;
     using Newtonsoft.Json;
 
-
-
     public static class ChromeSessionWebServer
     {
 
