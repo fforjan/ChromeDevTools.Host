@@ -16,12 +16,15 @@
 
     public class FibonacciScript : ScriptInfo
     {
+        public const string Script = 
+@"Fibonacci(int n) {
+    if(n == 0) return 0;
+    if(n == 1) return 1;\
+    return Fibonacci(n-1) + Fibonacci(n-2);
+}
+";
         public FibonacciScript() :
-            base("Fibonacci(int n) {\n" +
-                "   if(n == 0) return 0;\n" +
-                "   if(n == 1) return 1;\n" +
-                "   return Fibonacci(n-1) + Fibonacci(n-2);\n" +
-                "}", nameof(Fibonacci),
+            base("", nameof(Fibonacci),
                     new BreakableScriptPoint(Fibonacci.F0, (1, 3, nameof(Fibonacci))),
                     new BreakableScriptPoint(Fibonacci.F1, (2, 3, nameof(Fibonacci))),
                     new BreakableScriptPoint(Fibonacci.FN1Rec, (3, 10, nameof(Fibonacci))),

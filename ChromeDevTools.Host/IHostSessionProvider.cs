@@ -25,7 +25,7 @@ namespace ChromeDevTools.Host
         /// Create a session using a specific web socket.
         /// </summary>
         /// <param name="webSocket">web socket communication</param>
-        /// <param name="id">chrome sessin instance id. it should be matching a <see cref="ChromeSessionInstanceDescription.Id"/>
+        /// <param name="id">chrome session instance id. it should be matching a <see cref="ChromeSessionInstanceDescription.Id"/>
         /// returned by <see cref="GetSessionInstanceDescriptions(string, int)"/></param>
         /// <returns>a new session</returns>
         ChromeProtocolSession CreateSession(WebSocket webSocket, string id);

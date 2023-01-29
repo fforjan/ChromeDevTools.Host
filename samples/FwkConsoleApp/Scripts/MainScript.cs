@@ -15,15 +15,17 @@
 
     public class MainScript : ScriptInfo
     {
+        public const string Script =
+@"while(true)\
+{
+    sleep(1000);
+    console.log(Fibonacci(i));
+}"; 
         public MainScript() :
-            base("while(true)\n" +
-                "{\n" +
-                "  sleep(1000);\n" +
-                "  console.log(Fibonacci(i));\n" +
-                "}", nameof(Main),
-                    new BreakableScriptPoint(Main.SleepMethod, (2, 2, "sleep")),
-                    new BreakableScriptPoint(Main.FibonacciMethod, (3, 14, "Fibonacci")),
-                    new BreakableScriptPoint(Main.LogMethod, (3, 10, "log"))
+            base(Script, nameof(Main),
+                    new BreakableScriptPoint(Main.SleepMethod, (2, 4, "sleep")),
+                    new BreakableScriptPoint(Main.FibonacciMethod, (3, 17, "Fibonacci")),
+                    new BreakableScriptPoint(Main.LogMethod, (3, 13, "log"))
                 )
         {
         }
