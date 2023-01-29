@@ -17,6 +17,11 @@ You can now do the same with your application !
 
 # Demo
 
+## Samples
+There is 2 samples provided :
+- [EchoApp](samples/EchoApp/README.md) : a AspNetCore application
+- [FwkConsoleApp](samples/FwkConsoleApp/README.md) : a more advanced sample but implemented into a regular .net console application
+
 ### **Step 1** - run the sample you want.
 ``` 
 $ FwkConsoleApp.exe
@@ -28,7 +33,6 @@ listening on http://127.0.0.1:12345/
 
 ### **Step 3** - explore !
 ![Inspect](Documentation/inspecting.gif)
-
 
 # Implementation details
 This is the counter part of https://github.com/BaristaLabs/chrome-dev-tools-runtime and re-use part of it (JSON definition)
