@@ -62,13 +62,13 @@
             int i = 0;
             while (true)
             {
-                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.SleepMethod, null);
+                await sessions.BreakOn(nameof(Scripts.MainScript), Scripts.MainScript.Sleep, null);
                 await Task.Delay(1000);
 
-                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.FibonacciMethod, new { i });
+                await sessions.BreakOn(nameof(Scripts.MainScript), Scripts.MainScript.Fib, new { i });
                 var fibonacci = await Fibonacci(sessions, i);
 
-                await sessions.BreakOn(nameof(Scripts.Main), Scripts.Main.LogMethod, new { i });
+                await sessions.BreakOn(nameof(Scripts.MainScript), Scripts.MainScript.Log, new { i });
 
                 await sessions.ForEach(_ => _.GetService<RuntimeHandler>().Log($"Fibonacci({i}) = {fibonacci}"));
 

@@ -4,7 +4,6 @@
     <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,5 +22,6 @@
   </ItemGroup>
   <ItemGroup>
      <AdditionalFiles Include="Scripts\FwkConsoleApp.Scripts.Fibonacci.jsd" />
+     <AdditionalFiles Include="Scripts\FwkConsoleApp.Scripts.MainScript.jsd" />
   </ItemGroup>
 </Project>
