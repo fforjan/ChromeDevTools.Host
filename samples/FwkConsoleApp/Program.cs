@@ -52,7 +52,7 @@
 
 
         static async Task Main()
-        {
+        {   
             var sessions = new ChromeProtocolSessions();
 
             var server = ChromeSessionWebServer.Start(sessions, "http://127.0.0.1:12345/",

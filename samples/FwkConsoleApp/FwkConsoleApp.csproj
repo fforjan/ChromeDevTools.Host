@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\ChromeDevTools.Host\ChromeDevTools.Host.csproj" />
     <ProjectReference Include="..\..\ChromeDevTools.Host.FwkSelfHost\ChromeDevTools.Host.FwkSelfHost.csproj" />
+    <ProjectReference Include="..\..\ChromeDevTools.Analyzer\ChromeDevTools.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup>
     <None Update="output.heapsnapshot">
@@ -20,9 +21,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Scripts\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="MyDebuggerHandler.cs" />
+     <AdditionalFiles Include="Scripts/Fibonacci.jsd" />
   </ItemGroup>
 </Project>
