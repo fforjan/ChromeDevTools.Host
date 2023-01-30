@@ -15,19 +15,21 @@ public class ScriptGenerator : ISourceGenerator
     {
         // find anything that matches our files
         var myFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".jsd"));
+        
         foreach (var file in myFiles)
         {
             var content = file.GetText(context.CancellationToken);
 
-            // do some transforms based on the file context
-            string output = "public class Dummy {}";
+             var className = Path.GetFileNameWithoutExtension(file.Path);
 
+            var sourceText = SourceText.From(CSharpGenerator.GenerateScript(
+                className,
+                BreakPointInfo.ParseScript(content.ToString()))
+                , Encoding.UTF8);
 
-            var sourceText = SourceText.From(output, Encoding.UTF8);
-
-            var filenameBase = Path.GetFileNameWithoutExtension(file.Path);
-
-            context.AddSource($@"{filenameBase}.g.cs", sourceText);
+            context.AddSource($@"{className}.g.cs", sourceText);
         }
     }
+
+   
 }

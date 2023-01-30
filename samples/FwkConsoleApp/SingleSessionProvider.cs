@@ -12,7 +12,7 @@
     {
         private readonly Guid SingleSessionId = Guid.NewGuid();
         private readonly MainScript mainScript = new MainScript();
-        private readonly FibonacciScript fibonacci = new FibonacciScript();
+        private readonly Fibonacci fibonacci = new Fibonacci();
 
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {

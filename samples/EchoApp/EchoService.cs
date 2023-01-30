@@ -16,7 +16,7 @@ namespace EchoApp
         private readonly List<WebSocket> communicationSession = new List<WebSocket>();
         public async Task Echo(WebSocket webSocket)
         {
-            await Task.WhenAll(ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log("New Connection")));
+            await ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log("New Connection"));
 
             communicationSession.Add(webSocket);
             var buffer = new byte[1024 * 4];
@@ -31,14 +31,14 @@ namespace EchoApp
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
                     var message = Encoding.ASCII.GetString(rawMessage);
-                    await Task.WhenAll(ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log($"Received message: " + message)));
+                    await ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log($"Received message: " + message));
                 }
 
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
             this.communicationSession.Remove(webSocket);
 
-            await Task.WhenAll(ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log("Closed Connection")));
+            await ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log("Closed Connection"));
 
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }

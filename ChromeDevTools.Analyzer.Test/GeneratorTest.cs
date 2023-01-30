@@ -1,44 +1,27 @@
 ﻿using FluentAssertions;
 
 namespace ChromeDevTools.Analyzer.Test;
-
 [TestClass]
 public class GeneratorTest
 {
-    public const string InputScript = @"fibonacci(int n)
-{
-    let nMinus1 = @NMinus1@fibonacci(n-1);
-    let nMinus2 = @NMinus2@fibonacci(n-2);
-
-    return @Add@(nMinus1 + nMinus2);
-}";
-
-    public const string FinalScript = @"fibonacci(int n)
-{
-    let nMinus1 = fibonacci(n-1);
-    let nMinus2 = fibonacci(n-2);
-
-    return (nMinus1 + nMinus2);
-}";
-
     [TestMethod]
     public void NothingTodo()
     {
         // act
-        var result = BreakPointInfo.ParseScript(FinalScript);
+        var result = BreakPointInfo.ParseScript(TestData.FinalScript);
 
         // assert
-        result.finalScript.Should().Be(FinalScript);
+        result.finalScript.Should().Be(TestData.FinalScript);
     }
 
     [TestMethod]
     public void Parsing()
     {
         // act
-        var result = BreakPointInfo.ParseScript(InputScript);
+        var result = BreakPointInfo.ParseScript(TestData.InputScript);
 
         // assert
-        result.finalScript.Should().Be(FinalScript);
+        result.finalScript.Should().Be(TestData.FinalScript);
         result.breakpoints.Should().HaveCount(3);
 
         result.breakpoints[0].FunctionName.Should().Be("fibonacci");
@@ -55,5 +38,48 @@ public class GeneratorTest
         result.breakpoints[2].Column.Should().Be(12);
         result.breakpoints[2].Line.Should().Be(5);
         result.breakpoints[2].BreakpointName.Should().Be("Add");
+    }
+
+    [TestMethod]
+    public void GeneratingScriptClassWithNamespace()
+    {
+        //arrange
+        var info = (TestData.FinalScript,
+                new List<BreakPointInfo>
+                {
+                    new BreakPointInfo { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
+                    new BreakPointInfo { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
+                    new BreakPointInfo { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
+                }
+            );
+
+        //act
+        var script = CSharpGenerator.GenerateScript("Composed.Namespace.Fibonacci", info);
+
+        //assert
+        script.Should().Be(
+            "namespace Composed.Namespace {\n" +
+            TestData.GenerateScriptClass +
+            "}\n");
+    }
+
+    [TestMethod]
+    public void GeneratingScriptClassWithoutNamespace()
+    {
+        //arrange
+        var info = (TestData.FinalScript,
+                new List<BreakPointInfo>
+                {
+                    new BreakPointInfo { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
+                    new BreakPointInfo { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
+                    new BreakPointInfo { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
+                }
+            );
+
+        //act
+        var script = CSharpGenerator.GenerateScript("Fibonacci", info);
+
+        //assert
+        script.Should().Be(TestData.GenerateScriptClass);
     }
 }
