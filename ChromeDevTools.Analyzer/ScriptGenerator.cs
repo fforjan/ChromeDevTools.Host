@@ -5,31 +5,25 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-
 [Generator]
-public class ScriptGenerator : ISourceGenerator
+public class ScriptGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context) { }
-
-    public void Execute(GeneratorExecutionContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // find anything that matches our files
-        var myFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".jsd"));
-        
-        foreach (var file in myFiles)
-        {
-            var content = file.GetText(context.CancellationToken);
+        var myFiles = context.AdditionalTextsProvider
+            .Where(at => at.Path.EndsWith(".jsd"))
+            .Select((file, cancellationToken) => new { file, content = file.GetText(cancellationToken) });
 
-             var className = Path.GetFileNameWithoutExtension(file.Path);
+        context.RegisterSourceOutput(myFiles, (spc, file) =>
+        {
+            var className = Path.GetFileNameWithoutExtension(file.file.Path);
 
             var sourceText = SourceText.From(CSharpGenerator.GenerateScript(
                 className,
-                BreakPointInfo.ParseScript(content.ToString()))
+                BreakPointInfo.ParseScript(file.content.ToString()))
                 , Encoding.UTF8);
 
-            context.AddSource($@"{className}.g.cs", sourceText);
-        }
+            spc.AddSource($@"{className}.g.cs", sourceText);
+        });
     }
-
-   
 }

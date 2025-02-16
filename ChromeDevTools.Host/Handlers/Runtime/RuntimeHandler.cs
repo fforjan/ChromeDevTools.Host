@@ -12,9 +12,9 @@ namespace ChromeDevTools.Host.Handlers.Runtime
     {
         private ChromeProtocolSession session;
 
-        private PropertyDescriptorCreator propertyDescriptorCreator = new PropertyDescriptorCreator();
+        private PropertyDescriptorCreator propertyDescriptorCreator = new();
 
-        private Dictionary<string, List<object>> localObjects = new Dictionary<string, List<object>>();
+        private Dictionary<string, List<object>> localObjects = new();
 
         /// <summary>
         /// allocate a new context for a breakable point.

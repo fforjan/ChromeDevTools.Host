@@ -8,6 +8,6 @@
            app.UseMiddleware<ChromeHostMiddleware>();
         }
 
-        public static ChromeProtocolSessions Sessions = new ChromeProtocolSessions();
+        public static ChromeProtocolSessions Sessions = new();
     }    
 }

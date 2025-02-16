@@ -13,7 +13,7 @@ namespace EchoApp
 
     public class EchoService
     {
-        private readonly List<WebSocket> communicationSession = new List<WebSocket>();
+        private readonly List<WebSocket> communicationSession = new();
         public async Task Echo(WebSocket webSocket)
         {
             await ChromeHostExtension.Sessions.ForEach(_ => Extensions.GetService<RuntimeHandler>(_).Log("New Connection"));

@@ -11,8 +11,8 @@
     internal class SingleSessionProvider : IChromeSessionProvider
     {
         private readonly Guid SingleSessionId = Guid.NewGuid();
-        private readonly MainScript mainScript = new MainScript();
-        private readonly Fibonacci fibonacci = new Fibonacci();
+        private readonly MainScript mainScript = new();
+        private readonly Fibonacci fibonacci = new();
 
         public ChromeProtocolSession CreateSession(WebSocket webSocket, string guid)
         {

@@ -21,10 +21,10 @@ namespace ChromeDevTools.Host
         /// <summary>
         /// Only one send request can be emitted at a time.
         /// </summary>
-        static readonly SemaphoreSlim sendLocker = new SemaphoreSlim(1, 1);
+        static readonly SemaphoreSlim sendLocker = new(1, 1);
 
-        private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>>();
-        private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new ConcurrentDictionary<Type, string>();
+        private readonly ConcurrentDictionary<string, Func<JToken, Task<ICommandResponse>>> m_commandHandlers = new();
+        private readonly ConcurrentDictionary<Type, string> m_eventTypeMap = new();
 
         private readonly IDictionary<Type, object> serviceMapping = new Dictionary<Type, object>();
 

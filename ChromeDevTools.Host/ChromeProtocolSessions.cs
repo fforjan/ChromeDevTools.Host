@@ -15,17 +15,17 @@
         /// <summary>
         /// Locker object for being concurrent-friendly
         /// </summary>
-        private readonly object locker = new object();
+        private readonly object locker = new();
 
         /// <summary>
         /// Cancellation token source for <see cref="CancelOnLastSessionDisposed"/>.
         /// </summary>
-        private CancellationTokenSource lastSessionDisposed = new CancellationTokenSource();
+        private CancellationTokenSource lastSessionDisposed = new();
 
         /// <summary>
         /// List of active sessions.
         /// </summary>
-        private List<ChromeProtocolSession> sessions = new List<ChromeProtocolSession>();
+        private List<ChromeProtocolSession> sessions = new();
 
         /// <summary>
         /// Get active sessions.

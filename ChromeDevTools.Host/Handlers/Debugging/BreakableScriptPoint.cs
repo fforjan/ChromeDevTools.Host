@@ -10,11 +10,11 @@
         /// <summary>
         /// Pre-defined breakpoint.
         /// </summary>
-        public static readonly BreakableScriptPoint Any = new BreakableScriptPoint("Any", (-1, -1, "Any"));
+        public static readonly BreakableScriptPoint Any = new("Any", (-1, -1, "Any"));
 
         public (int lineNumber, int columnNumber, string functionName) Info { get; }
 
-        private object locker = new object();
+        private object locker = new();
 
         private TaskCompletionSource<bool> breakPointTask;
 

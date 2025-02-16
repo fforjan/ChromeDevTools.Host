@@ -47,9 +47,9 @@ public class GeneratorTest
         var info = (TestData.FinalScript,
                 new List<BreakPointInfo>
                 {
-                    new BreakPointInfo { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
-                    new BreakPointInfo { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
-                    new BreakPointInfo { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
+                    new() { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
+                    new() { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
+                    new() { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
                 }
             );
 
@@ -70,9 +70,9 @@ public class GeneratorTest
         var info = (TestData.FinalScript,
                 new List<BreakPointInfo>
                 {
-                    new BreakPointInfo { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
-                    new BreakPointInfo { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
-                    new BreakPointInfo { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
+                    new() { BreakpointName= "NMinus1", Column=19, Line = 2, FunctionName="fibonacci"},
+                    new() { BreakpointName= "NMinus2", Column=19, Line = 3, FunctionName="fibonacci"},
+                    new() { BreakpointName= "Add", Column=12, Line = 5, FunctionName="Add"},
                 }
             );
 
