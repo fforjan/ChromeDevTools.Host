@@ -1,4 +1,4 @@
-while(true)\
+while(true)
 {
     @Sleep@sleep(1000);
     console.@Log@log(@Fib@Fibonacci(i));
