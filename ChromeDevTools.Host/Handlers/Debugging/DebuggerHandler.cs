@@ -14,7 +14,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
     /// Debugger implementation
     /// </summary>
     public class DebuggerHandler : IRuntimeHandler
-    {       
+    {
         private Dictionary<string, ScriptInfo> scriptsById;
         private Dictionary<string, ScriptInfo> scriptsByUrl;
 
@@ -47,7 +47,7 @@ namespace ChromeDevTools.Host.Handlers.Debugging
         {
             Session.SendEvent(e.AsEvent()).Wait();
         }
-   
+
         public virtual void Register(ChromeProtocolSession session)
         {
             this.Session = session;
@@ -109,14 +109,20 @@ namespace ChromeDevTools.Host.Handlers.Debugging
 
                 var url = arg.Url ?? arg.UrlRegex.Split('|')[1]; // FIXME - implement javascript regexp
 
-                var script = this.ScriptsByUrl[url];
+                if (this.ScriptsByUrl.TryGetValue(url, out var script))
+                {
+                    var closestBreakpoint = GetClosetBreakPoint(script, arg.LineNumber, arg.ColumnNumber);
 
-                var closestBreakpoint = GetClosetBreakPoint(script, arg.LineNumber, arg.ColumnNumber);
+                    closestBreakpoint.IsBreakPointSet = true;
 
-                closestBreakpoint.IsBreakPointSet = true;
-
-                result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
-                result.Locations = new[] { closestBreakpoint.AsLocation(script) };
+                    result.BreakpointId = script.Url + "/" + closestBreakpoint.Name;
+                    result.Locations = new[] { closestBreakpoint.AsLocation(script) };
+                }
+                else
+                {
+                    result.BreakpointId = null;
+                    result.Locations = new Location[0];
+                }
 
                 return result;
             });

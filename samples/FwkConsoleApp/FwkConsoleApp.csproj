@@ -4,6 +4,7 @@
     <TargetFrameworks>net8.0;net472</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles> 
   </PropertyGroup>
 
   <ItemGroup>

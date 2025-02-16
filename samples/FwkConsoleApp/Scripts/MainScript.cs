@@ -7,6 +7,6 @@
     {
         public const string Sleep = nameof(Sleep);
         public const string Fib = nameof(Fib);
-        public const string Log = nameof(Fib);
+        public const string Log = nameof(Log);
     }
 }
