@@ -1,5 +1,12 @@
+<table>
+  <tr>
+    <td>
+      <h3> 🚨 Update (Feb 2025) </h3>
+         <p> This is now archive ! the development continues here : <a href="https://github.com/kgen-llc/ChromeDevToolsConnector">Chrome DevTools Connector</a>! </p>
+    </td>
+  </tr>
+</table>
 # ChromeDevTools.Host
-
 
 The library allows to host a chrome dev protocol endpoint into your own .net 4.7.2 application  or a asp.net core application.
 
@@ -39,3 +46,5 @@ This is the counter part of https://github.com/BaristaLabs/chrome-dev-tools-runt
 
 - AspNet.Core is reuse the AspNet Core Middle
 - FwkSelfHosted is re-use the HttpListener available in .Net Framework.
+fail_on_error: true
+          filter_mode: nofilter
